@@ -1,5 +1,5 @@
 #!/bin/bash
-export EE_PROJECT="alexcloud-489214"
+export EE_PROJECT="esa-cci"
 # 1. Error Handling: Stop the script if any command fails
 set -e
 
@@ -10,8 +10,7 @@ if ! command -v uv &> /dev/null; then
 fi
 
 # 3. Install bulk packages
-uv pip install numpy matplotlib scikit-learn earthengine-api opencv-python
-uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+uv pip install numpy matplotlib scikit-learn earthengine-api opencv-python requests tifffile rasterio tqdmuv pip install torch torchvision
 echo -e "\e[36mbulk packages installed...\e[0m"
 
 # 4. Clone and install the geotessera repository
