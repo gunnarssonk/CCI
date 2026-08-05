@@ -1,9 +1,11 @@
-import os, torch, wandb, argparse, math
+import os, torch, wandb, argparse, math, random
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from datetime import datetime
 from dataclasses import dataclass, asdict, fields
 from src.dataset.dataset import BiomassDataset, compute_normalization_stats
 from src.model.model import SmallCNN, PointWiseModel
@@ -71,6 +73,13 @@ class Config:
     epochs: int = 2000
     lr: float = 1e-4
 
+    # data — logged to wandb so a run records which dataset it used
+    data_dir: str = "data_uniform"
+    use_ae: bool = True
+    split_train: float = 0.7
+    split_val: float = 0.15
+    seed: int = 42          # controls the train/val/test split; keep fixed to compare runs
+
     exp_name: str = "0"
     run_name: str = "run_0"
     project_name: str = "geotessera-biomass"
@@ -85,32 +94,58 @@ class Config:
 # =============================
 def train(
     cfg: Config,
-    data_dir="data_uniform",
     num_workers=0
 ):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device)
 
-    # Initialize wandb
-    log_name = f"{cfg.exp_name}_{cfg.run_name}"
+    data_dir = cfg.data_dir
+
+    # Initialize wandb. The timestamp keeps run names unique even if the same
+    # exp_name/run_name pair is used twice.
+    stamp = datetime.now().strftime("%m%d_%H%M")
+    log_name = f"{cfg.exp_name}_{cfg.run_name}_{stamp}"
     wandb.init(
         project=cfg.project_name,
         name=log_name,
-        config=asdict(cfg)
+        config=asdict(cfg),
+        tags=[cfg.exp_name, cfg.model_class.__name__],
     )
 
     # =========================
     #         DATASET
     # =========================
-    split_file = None
+    split_ratio = (cfg.split_train, cfg.split_val, 1.0 - cfg.split_train - cfg.split_val)
+
+    # Fixed seed → the same tiles land in train/val/test on every run, so runs
+    # are actually comparable to each other.
+    random.seed(cfg.seed)
+    np.random.seed(cfg.seed)
+    torch.manual_seed(cfg.seed)
+
     ae_stats = compute_normalization_stats(data_dir, sample_tiles=20, subdir="ae_embeddings", out="norm_stats_ae.json")
 
-    train_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="train", split_ratio=(0.7, 0.15, 0.15), use_ae=True, augment=False)
-    val_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="val", split_ratio=(0.7, 0.15, 0.15), use_ae=True, augment=False)
+    # BiomassDataset shuffles the tile list itself and then slices it: the first 70%
+    # become "train", the next 15% become "val". Because we build it twice, it would
+    # shuffle twice — two different orders — and a tile sitting in the first 70% of
+    # order A can easily sit in the val slice of order B. That tile would then be both
+    # trained on and validated on ("leakage"), making the val score look better than
+    # the model really is. Re-seeding forces both builds to use the identical order,
+    # so the two slices can never overlap.
+    train_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="train", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False)
+    random.seed(cfg.seed)
+    val_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="val", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False)
 
     train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
     val_loader = DataLoader(val_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
     print("passed dataset and loaders")
+
+    # Record what this run actually trained on, so it shows up as columns in wandb.
+    wandb.config.update({
+        "n_train_tiles": len(train_ds),
+        "n_val_tiles": len(val_ds),
+        "n_total_tiles": len(train_ds) + len(val_ds),
+    })
 
     # =========================
     #          MODEL
@@ -200,12 +235,12 @@ def train(
         print(f"Epoch {epoch+1}/{cfg.epochs} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
     
  
-    # SAVE MODEL    
+    # SAVE MODEL
+    # run_dir carries the same timestamp as the wandb run name, so a checkpoint
+    # on disk can always be traced back to its run (and nothing gets overwritten).
     ckpt_dir = "checkpoints"
-    exp_dir = os.path.join(ckpt_dir, cfg.exp_name) ; run_dir = os.path.join(exp_dir, cfg.run_name)
-    if not os.path.exists(ckpt_dir): os.makedirs(ckpt_dir)
-    if not os.path.exists(exp_dir): os.makedirs(exp_dir)
-    if not os.path.exists(run_dir): os.makedirs(run_dir)
+    exp_dir = os.path.join(ckpt_dir, cfg.exp_name) ; run_dir = os.path.join(exp_dir, f"{cfg.run_name}_{stamp}")
+    os.makedirs(run_dir, exist_ok=True)
 
     torch.save(model.state_dict(), run_dir + f"/model.pth")
     artifact = wandb.Artifact('biomass-model', type='model')
@@ -217,13 +252,26 @@ def train(
 
 
 
+def str2bool(value):
+    """argparse would read the string "False" as True, so parse booleans by hand."""
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("true", "t", "yes", "y", "1"):
+        return True
+    if value.lower() in ("false", "f", "no", "n", "0"):
+        return False
+    raise argparse.ArgumentTypeError(f"expected true/false, got {value!r}")
+
+
 def args_extract(parser: argparse.ArgumentParser):
     for field in fields(Config):
         # Determine the type (handling types like 'type' carefully)
         field_type = field.type if field.type != type else None
+        if field_type is bool:
+            field_type = str2bool
         parser.add_argument(
-            f"--{field.name}", 
-            type=field_type, 
+            f"--{field.name}",
+            type=field_type,
             default=field.default
         )
 

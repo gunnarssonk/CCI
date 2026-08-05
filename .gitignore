@@ -16,3 +16,6 @@ global_0.1_degree_representation/
 global_0.1_degree_tiff_all/
 dataset_mosaic.tif
 web_tiles/
+
+.DS_Store
+.vscode/

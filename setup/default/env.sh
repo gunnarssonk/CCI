@@ -1,18 +1,9 @@
-#!bin/env bash
-
-# This script temporarily adds Mamba to the PATH for the current terminal session.
+#!/usr/bin/env bash
+# Temporarily adds Mamba to PATH for this terminal session, then creates/activates the esa_env environment.
 
 # 1. Define Paths
 MAMBA_BASE="$HOME/miniforge3"
 MAMBA_BIN="$MAMBA_BASE/bin"
-# Detect Conda base automatically
-# MAMBA_BASE=$(conda info --base 2>/dev/null)
-# if [ $? -ne 0 ]; then
-#     echo "❌ Conda not found in PATH. Please install Conda or Mambaforge first."
-#     exit 1
-# fi
-
-# MAMBA_BIN="$MAMBA_BASE/bin"
 echo "Detected Mamba base: $MAMBA_BASE"
 
 ENV_NAME="esa_env"
