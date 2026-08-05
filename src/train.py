@@ -73,6 +73,10 @@ class Config:
     epochs: int = 2000
     lr: float = 1e-4
 
+    # early stopping: give up after this many epochs with no new best val_loss.
+    # Set to 0 to disable and always run the full `epochs`.
+    patience: int = 50
+
     # data — logged to wandb so a run records which dataset it used
     data_dir: str = "data_uniform"
     use_ae: bool = True
@@ -161,9 +165,21 @@ def train(
 
     print(f"Model input channels: {in_channels}")
 
+    # Checkpoint folder is created up front, because the best model is now saved
+    # during training rather than only at the end. run_dir carries the same
+    # timestamp as the wandb run name, so a checkpoint can always be traced back
+    # to its run (and nothing gets overwritten).
+    run_dir = os.path.join("checkpoints", cfg.exp_name, f"{cfg.run_name}_{stamp}")
+    os.makedirs(run_dir, exist_ok=True)
+    ckpt_path = os.path.join(run_dir, "model.pth")
+
     # =========================
     #      TRAINING LOOP
     # =========================
+    best_val_loss = float("inf")   # lowest val_loss seen so far
+    best_epoch = 0
+    epochs_since_best = 0          # how long since we last improved
+
     pbar_epoch = tqdm(range(cfg.epochs), desc="Overall Progress")
     for epoch in range(cfg.epochs):
 
@@ -217,10 +233,23 @@ def train(
             "V-Loss": f"{avg_val_loss:.4f}"
         })
 
+        # ---- early stopping ----
+        # Save whenever this epoch beats the best val_loss so far, so the file on
+        # disk is always the best model, not just the most recent one.
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            best_epoch = epoch + 1
+            epochs_since_best = 0
+            torch.save(model.state_dict(), ckpt_path)
+        else:
+            epochs_since_best += 1
+
         wandb.log({
             "epoch": epoch + 1,
             "train_loss": avg_train_loss,
             "val_loss": avg_val_loss,
+            "best_val_loss": best_val_loss,
+            "epochs_since_best": epochs_since_best,
             "learning_rate": optimizer.param_groups[0]['lr']
         })
         if vis_batch is not None and epoch % 10 == 0:
@@ -232,19 +261,26 @@ def train(
                 save_dir="visu"
             )
         
-        print(f"Epoch {epoch+1}/{cfg.epochs} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
-    
- 
-    # SAVE MODEL
-    # run_dir carries the same timestamp as the wandb run name, so a checkpoint
-    # on disk can always be traced back to its run (and nothing gets overwritten).
-    ckpt_dir = "checkpoints"
-    exp_dir = os.path.join(ckpt_dir, cfg.exp_name) ; run_dir = os.path.join(exp_dir, f"{cfg.run_name}_{stamp}")
-    os.makedirs(run_dir, exist_ok=True)
+        print(f"Epoch {epoch+1}/{cfg.epochs} | Train Loss: {avg_train_loss:.4f} | "
+              f"Val Loss: {avg_val_loss:.4f} | Best: {best_val_loss:.4f} (epoch {best_epoch})")
 
-    torch.save(model.state_dict(), run_dir + f"/model.pth")
+        # Val loss has not improved for `patience` epochs → more training is not
+        # helping, so stop rather than burn hours overfitting.
+        if cfg.patience and epochs_since_best >= cfg.patience:
+            print(f"\nEarly stop at epoch {epoch+1}: no improvement for {cfg.patience} epochs. "
+                  f"Best val_loss {best_val_loss:.4f} at epoch {best_epoch}.")
+            break
+
+    pbar_epoch.close()
+
+    # The best checkpoint was already written during the loop; record how it did
+    # and upload that file (not the final, possibly-overfitted weights).
+    wandb.summary["best_val_loss"] = best_val_loss
+    wandb.summary["best_epoch"] = best_epoch
+    wandb.summary["stopped_at_epoch"] = epoch + 1
+
     artifact = wandb.Artifact('biomass-model', type='model')
-    artifact.add_file(run_dir + f"/model.pth")
+    artifact.add_file(ckpt_path)
     wandb.log_artifact(artifact)
     wandb.finish()
 
