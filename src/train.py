@@ -64,10 +64,21 @@ def visualize_predictions(x, y_true, y_pred, epoch, save_dir=None):
 
     plt.close(fig)
 
+# Models selectable from the command line, by name. Config stores the *name* (a
+# string) rather than the class itself: argparse can only build simple types from
+# text, so a `type` field could never be set with --model_class, and asdict() had
+# to serialise a class object into the wandb config. Add a new model here and it
+# becomes available as --model_name straight away.
+MODELS = {
+    "PointWiseModel": PointWiseModel,
+    "SmallCNN": SmallCNN,
+}
+
+
 @dataclass
 class Config:
     """Configuration for the model architecture."""
-    model_class: type = PointWiseModel
+    model_name: str = "PointWiseModel"   # one of MODELS above
     batch_size: int = 16
     patch_size: int = 128
     epochs: int = 2000
@@ -113,7 +124,7 @@ def train(
         project=cfg.project_name,
         name=log_name,
         config=asdict(cfg),
-        tags=[cfg.exp_name, cfg.model_class.__name__],
+        tags=[cfg.exp_name, cfg.model_name],
     )
 
     # =========================
@@ -159,14 +170,17 @@ def train(
     # =========================
     #          MODEL
     # =========================
-    sample_x, sample_y, sample_name = train_ds[0]
+    sample_x, sample_y, sample_valid, sample_name = train_ds[0]
     in_channels = sample_x.shape[-1]
 
-    model = cfg.model_class(in_channels).to(device)
+    if cfg.model_name not in MODELS:
+        raise ValueError(f"Unknown model_name {cfg.model_name!r}. Choose one of: {', '.join(MODELS)}")
+    model = MODELS[cfg.model_name](in_channels).to(device)
     wandb.watch(model, log_freq=100)
 
     optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
-    loss_fn = nn.MSELoss()
+    # No nn.MSELoss() here: both loops compute the mean squared error by hand so
+    # that no-data pixels can be excluded via the `valid` mask.
 
     print(f"Model input channels: {in_channels}")
 
@@ -191,13 +205,16 @@ def train(
         # ---- train ----
         model.train() ; train_loss = 0
         train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1} [Train]", leave=False)
-        for x,y,_ in train_bar:
-            x = x.to(device) ; y = y.to(device).squeeze(-1) #.squeeze(-1) #.squeeze(1)
-            x_vis = x.mean(dim=-1) ; mask = torch.isinf(x_vis) ; mask = mask.unsqueeze(-1) ; mask = mask.expand_as(x) 
-            x = torch.where(mask, torch.zeros_like(x), x)
-            
+        for x, y, valid, _ in train_bar:
+            x = x.to(device) ; y = y.to(device).squeeze(-1) ; valid = valid.to(device)
+
             pred = model(x)
-            loss = loss_fn(pred, y)
+            # Mean squared error over usable pixels only. The dataset has already
+            # zeroed the no-data pixels in x; `valid` keeps them out of the loss so
+            # the model is not punished for failing to predict where there is no
+            # input. Previously this used torch.isinf, which never matched, because
+            # the no-data marker (-3.4e38) is finite.
+            loss = (((pred - y) ** 2) * valid).sum() / valid.sum().clamp(min=1)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -213,13 +230,12 @@ def train(
         model.eval() ; val_loss = 0
         val_bar = tqdm(val_loader, desc=f"Epoch {epoch+1} [Val]", leave=False)
         with torch.no_grad():
-            for i, (x, y, _) in enumerate(val_bar):
-                x = x.to(device) ; y = y.to(device).squeeze(-1)
-                x_vis = x.mean(dim=-1) ; mask = torch.isinf(x_vis) ; mask = mask.unsqueeze(-1) ; mask = mask.expand_as(x) 
-                x = torch.where(mask, torch.zeros_like(x), x)
+            for i, (x, y, valid, _) in enumerate(val_bar):
+                x = x.to(device) ; y = y.to(device).squeeze(-1) ; valid = valid.to(device)
 
                 pred = model(x)
-                loss = loss_fn(pred, y)
+                # same masked loss as the training loop, so the two are comparable
+                loss = (((pred - y) ** 2) * valid).sum() / valid.sum().clamp(min=1)
 
                 val_loss += loss.item()
                 val_bar.set_postfix(val_loss=f"{loss.item():.4f}")

@@ -117,9 +117,9 @@ def build_geom(lat, lon, buffer_deg):
     max_lat = lat + buffer_deg
 
     return ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat]), \
-           (min_lon, min_lat, max_lon, max_lat)
+           (min_lon, min_lat, max_lon, max_lat) # the plain tuple which is the format the CCI toolbox want for region= / this line is an integration point later
 
-
+# download ae input data from google earth engine and return as numpy array
 def fetch_alphaearth(geom, bounds, master_dim, year):
     ae_coll = (ee.ImageCollection('GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL')
                .filterDate(f'{year}-01-01', f'{year+1}-01-01')
@@ -167,7 +167,7 @@ def fetch_alphaearth(geom, bounds, master_dim, year):
 
     return ae
 
-# give the function a year 
+# give the function a year, download the target data from google earth engine and return as numpy array
 def fetch_agb(geom, year, master_dim):
     agb = (ee.ImageCollection("projects/sat-io/open-datasets/ESA/ESA_CCI_AGB")
            .filterDate(f"{year}-01-01", f"{year}-12-31")

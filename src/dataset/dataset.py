@@ -19,6 +19,14 @@ elif '' in sys.path:
 # from geotessera import GeoTessera
 import ee
 
+# AlphaEarth stores "no data" as the float32 minimum, -3.4028235e+38. That value is
+# finite, so isinf/isnan never catch it. Real embedding values sit within about
+# -0.45 to 0.45, so anything below this threshold is unambiguously a no-data marker.
+# Compared as a threshold rather than for equality, because exact float comparison
+# is fragile.
+NODATA_THRESHOLD = -1e30
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Dataset class
 # ─────────────────────────────────────────────────────────────────────────────
@@ -44,27 +52,22 @@ class BiomassDataset(Dataset):
         augment     : random rot90 + horizontal flip (training only, optional)
     """
 
-    def __init__(self, data_dir, patch_size=64, split="train", split_ratio=(0.7, 0.15, 0.15), use_ae=False, augment=False):
+    def __init__(self, data_dir, patch_size=64, split="train", split_ratio=(0.7, 0.15, 0.15), use_ae=False, augment=False, seed=42):
         # self.patch_size = patch_size ; self.use_ae = use_ae ; self.augment = augment
         data_dir = Path(data_dir)  # emb_dir  = data_dir / "embeddings"
         ae_dir = data_dir / "ae_embeddings"
         y_dir = data_dir / "targets"
 
         all_names = [f.stem.replace("_ae", "") for f in ae_dir.glob("*_ae.npy")]
-        all_names = sorted(all_names)
 
-        # simple split
-        random.shuffle(all_names)
-        n = len(all_names)
-        n_train = int(split_ratio[0] * n)
-        n_val = int(split_ratio[1] * n)
-
-        if split == "train":
-            names = all_names[:n_train]
-        elif split == "val":
-            names = all_names[n_train:n_train + n_val]
-        else:
-            names = all_names[n_train + n_val:]
+        # Split via _default_split, which uses its own private random generator.
+        # The previous version shuffled with the global `random` module here, which
+        # meant the ordering depended on how many random numbers anything else had
+        # already drawn. compute_normalization_stats() draws 20 of them between the
+        # train and val builds, so the two ended up with different orderings and
+        # their slices overlapped: 28 of 45 val tiles were also training tiles.
+        # Ordering now depends only on `seed`.
+        names = self._default_split(all_names, split, split_ratio=split_ratio, seed=seed)
 
         self.samples = []
 
@@ -160,10 +163,20 @@ class BiomassDataset(Dataset):
         if y.ndim == 2:
             y = y[..., None]
 
+        # Flag no-data pixels (see NODATA_THRESHOLD above). A pixel is unusable if
+        # ANY of its 64 channels carries the marker. Those pixels are zeroed in the
+        # input and flagged in `valid`, so the loss can skip them: zeroing alone
+        # would still leave the model graded on places where there is nothing to
+        # predict from. About 8-9% of pixels are affected.
+        bad = (x < NODATA_THRESHOLD).any(axis=-1)      # (H, W) True where no data
+        x = np.where(x < NODATA_THRESHOLD, 0.0, x)
+        valid = (~bad).astype(np.float32)              # 1.0 = usable, 0.0 = ignore
+
         # to tensor
         x = torch.from_numpy(x).float() ; y = torch.from_numpy(y).float()
+        valid = torch.from_numpy(valid)
 
-        return x, y, name
+        return x, y, valid, name
 
     # ── Helpers ───────────────────────────────────────────────────────────────
     def _augment(self, x, y): # verify x [H,W,C] ?
@@ -175,16 +188,24 @@ class BiomassDataset(Dataset):
         return x, y
 
     @staticmethod
-    def _default_split(names, split, seed=42):
-        """Reproducible 70/15/15 train/val/test split."""
+    def _default_split(names, split, split_ratio=(0.7, 0.15, 0.15), seed=42):
+        """Reproducible train/val/test split.
+
+        Uses its own private generator (np.random.default_rng) rather than the
+        global `random` module, so the ordering depends only on `seed` and cannot
+        be disturbed by anything else that draws random numbers first. `names` is
+        sorted before shuffling so the result does not depend on the order the
+        filesystem happened to return files in.
+        """
         rng = np.random.default_rng(seed)
-        shuffled = rng.permutation(names).tolist()
+        shuffled = rng.permutation(sorted(names)).tolist()
         n = len(shuffled)
-        cuts = (int(0.70 * n), int(0.85 * n))
+        n_train = int(split_ratio[0] * n)
+        n_val = int(split_ratio[1] * n)
         splits = {
-            "train": shuffled[:cuts[0]],
-            "val":   shuffled[cuts[0]:cuts[1]],
-            "test":  shuffled[cuts[1]:],
+            "train": shuffled[:n_train],
+            "val":   shuffled[n_train:n_train + n_val],
+            "test":  shuffled[n_train + n_val:],
         }
         if split not in splits:
             raise ValueError(f"split must be 'train', 'val', or 'test', got '{split}'")
