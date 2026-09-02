@@ -1,3 +1,6 @@
+#!/Users/klara.gunnarsson/miniforge3/envs/esa_env/bin/python
+import argparse
+from dataclasses import dataclass, fields
 import os
 import io
 import sys
@@ -15,26 +18,59 @@ from tqdm import tqdm
 # ==============================
 # CONFIG
 # ==============================
-OUTPUT_DIR = "data_uniform"
-AE_DIR = os.path.join(OUTPUT_DIR, "ae_embeddings")
-TARGET_DIR = os.path.join(OUTPUT_DIR, "targets")
 
-os.makedirs(AE_DIR, exist_ok=True)
-os.makedirs(TARGET_DIR, exist_ok=True)
+@dataclass
+class Config:
+    """Configuration for the dataset to build."""
+    output_dir: str = "data_uniform"
+    master_dim: int = 256
+    buffer_deg: float = 0.09  # ~10km
+    total_samples: int = 100
+    max_tries: int = 100000  # safety caps
+    year: int = 2020
+    country: str = "France"
 
-# ee.Initialize(project="alexcloud-489214")
-project = os.getenv("EE_PROJECT")
-if project:
-    ee.Initialize(project=project)
-else:
-    print("EE_PROJECT env var not set, using default project")
-    ee.Initialize(project="esa-cci")  # fallback "alexcloud-489214"
-ee.Initialize(project=project)
+    def __post_init__(self):
+        self.ae_dir: str = os.path.join(self.output_dir, "ae_embeddings")
+        self.target_dir: str = os.path.join(self.output_dir, "targets")
+        # Ensure directories exist
+        os.makedirs(self.output_dir, exist_ok=True)
+        os.makedirs(self.ae_dir, exist_ok=True)
+        os.makedirs(self.target_dir, exist_ok=True)
 
-MASTER_DIM = 256
-BUFFER_DEG = 0.09   # ~10km
-TOTAL_SAMPLES = 100
-MAX_TRIES = 100000   # safety cap
+
+def str2bool(value):
+    """argparse would read the string "False" as True, so parse booleans by hand."""
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("true", "t", "yes", "y", "1"):
+        return True
+    if value.lower() in ("false", "f", "no", "n", "0"):
+        return False
+    raise argparse.ArgumentTypeError(f"expected true/false, got {value!r}")
+
+
+def args_extract(parser: argparse.ArgumentParser):
+    for field in fields(Config):
+        # Determine the type (handling types like 'type' carefully)
+        field_type = field.type if field.type != type else None
+        if field_type is bool:
+            field_type = str2bool
+        parser.add_argument(
+            f"--{field.name}",
+            type=field_type,
+            default=field.default
+        )
+
+    args = parser.parse_args()
+    config_keys = {f.name for f in fields(Config)}
+    extra_args = set(vars(args).keys()) - config_keys
+    if extra_args:
+        print(f"Arguments ignored (not in Config): {', '.join(extra_args)}")
+
+    filtered_args = {k: v for k, v in vars(args).items() if k in config_keys}
+    return filtered_args
+
 
 # ==============================
 # UTIL FUNCTIONS
@@ -74,18 +110,19 @@ def sample_point_in_zone(france_geom):
 
 
 
-def build_geom(lat, lon):
-    min_lon = lon - BUFFER_DEG
-    max_lon = lon + BUFFER_DEG
-    min_lat = lat - BUFFER_DEG
-    max_lat = lat + BUFFER_DEG
+def build_geom(lat, lon, buffer_deg):
+    min_lon = lon - buffer_deg
+    max_lon = lon + buffer_deg
+    min_lat = lat - buffer_deg
+    max_lat = lat + buffer_deg
 
     return ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat]), \
            (min_lon, min_lat, max_lon, max_lat)
 
 
-def fetch_alphaearth(geom, bounds):
+def fetch_alphaearth(geom, bounds, master_dim, year):
     ae_coll = (ee.ImageCollection('GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL')
+               .filterDate(f'{year}-01-01', f'{year+1}-01-01')
                .filterBounds(geom)
                .sort('system:time_start', False))
 
@@ -106,7 +143,7 @@ def fetch_alphaearth(geom, bounds):
         url = chunk_img.getDownloadURL({
             'region': geom,
             'format': 'GEO_TIFF',
-            'dimensions': f'{MASTER_DIM}x{MASTER_DIM}',
+            'dimensions': f'{master_dim}x{master_dim}',
             'crs': 'EPSG:4326'
         })
 
@@ -130,8 +167,8 @@ def fetch_alphaearth(geom, bounds):
 
     return ae
 
-
-def fetch_agb(geom, year=2020):
+# give the function a year 
+def fetch_agb(geom, year, master_dim):
     agb = (ee.ImageCollection("projects/sat-io/open-datasets/ESA/ESA_CCI_AGB")
            .filterDate(f"{year}-01-01", f"{year}-12-31")
            .filterBounds(geom)
@@ -145,7 +182,7 @@ def fetch_agb(geom, year=2020):
     url = agb.getDownloadURL({
         'region': geom,
         'format': 'GEO_TIFF',
-        'dimensions': f'{MASTER_DIM}x{MASTER_DIM}',
+        'dimensions': f'{master_dim}x{master_dim}',
         'crs': 'EPSG:4326'
     })
 
@@ -168,57 +205,73 @@ def fetch_agb(geom, year=2020):
 
 # ==============================
 # MAIN LOOP
+# a lot of things are hardcoded - when running enter on command line country and samples - make it wasier to change sample and location 
+# evaluate model on a complete different area and time period 
 # ==============================
-land_fc = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017") ; land_geom = land_fc.geometry()
-countries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017") ; france = countries.filter(ee.Filter.eq('country_na', 'France')).geometry()
-accepted = 0 ; tries = 0
+if __name__ == "__main__":
+    project = os.getenv("EE_PROJECT")
+    if project:
+        ee.Initialize(project=project)
+    else:
+        print("EE_PROJECT env var not set, using default project")
+        ee.Initialize(project="esa-cci")  # fallback "alexcloud-489214"
 
-pbar = tqdm(total=TOTAL_SAMPLES, desc="Accepted samples", unit="sample")
-while accepted < TOTAL_SAMPLES and tries < MAX_TRIES:
-    tries += 1
+    parser = argparse.ArgumentParser()
+    filtered_args = args_extract(parser)
+    config = Config(**filtered_args)
 
-    lat, lon = sample_point_in_zone(france)
-    geom, bounds = build_geom(lat, lon)
+    country_boundaries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017") 
+    land_geom = country_boundaries.geometry()
+    country = country_boundaries.filter(ee.Filter.eq('country_na', config.country)).geometry()
+    accepted = 0 
+    tries = 0
 
-    print(f"\n🌍 Try {tries} | Sampling ({lat:.4f}, {lon:.4f})")
+    pbar = tqdm(total=config.total_samples, desc="Accepted samples", unit="sample")
+    while accepted < config.total_samples and tries < config.max_tries:
+        tries += 1
 
-    try:
-        ae = fetch_alphaearth(geom, bounds)
-        if ae is None:
-            print("❌ AlphaEarth invalid")
-            continue
+        lat, lon = sample_point_in_zone(country)
+        geom, bounds = build_geom(lat, lon, config.buffer_deg)
 
-        agb = fetch_agb(geom)
-        if agb is None:
-            print("❌ AGB invalid")
-            continue
+        print(f"\n🌍 Try {tries} | Sampling ({lat:.4f}, {lon:.4f})")
 
-        # SAVE
-        #name = f"sample_{accepted:05d}"
-        #name = f"lat{lat:.4f}_lon{lon:.4f}"
-        name = f"lat{lat:+08.4f}_lon{lon:+09.4f}_{accepted:05d}"
+        try:
+            ae = fetch_alphaearth(geom, bounds, config.master_dim, config.year)
+            if ae is None:
+                print("❌ AlphaEarth invalid")
+                continue
 
-        np.save(os.path.join(AE_DIR, f"{name}_ae.npy"), ae)
-        np.save(os.path.join(TARGET_DIR, f"{name}_y.npy"), agb)
+            agb = fetch_agb(geom, config.year, config.master_dim)
+            if agb is None:
+                print("❌ AGB invalid")
+                continue
 
-        #print(f"✅ Accepted sample {accepted}")
-        accepted += 1
-        pbar.update(1)
-        accept_rate = accepted / tries
-        pbar.set_postfix({
-            "tries": tries,
-            "acc_rate": f"{accept_rate:.2f}"
-        })
-        print(f"✅ Accepted sample {accepted}")
+            # SAVE
+            #name = f"sample_{accepted:05d}"
+            #name = f"lat{lat:.4f}_lon{lon:.4f}"
+            name = f"lat{lat:+08.4f}_lon{lon:+09.4f}_{accepted:05d}"
 
-        # small delay to avoid throttling
-        time.sleep(1)
+            np.save(os.path.join(config.ae_dir, f"{name}_ae.npy"), ae)
+            np.save(os.path.join(config.target_dir, f"{name}_y.npy"), agb)
 
-    except HTTPError:
-        print("   ⚠️ HTTP error")
-    except Exception as e:
-        print(f"   ❌ Error: {e}")
+            #print(f"✅ Accepted sample {accepted}")
+            accepted += 1
+            pbar.update(1)
+            accept_rate = accepted / tries
+            pbar.set_postfix({
+                "tries": tries,
+                "acc_rate": f"{accept_rate:.2f}"
+            })
+            print(f"✅ Accepted sample {accepted}")
 
-pbar.close()
-print("\n====================")
-print(f"Done: {accepted} samples collected in {tries} tries")
+            # small delay to avoid throttling
+            time.sleep(1)
+
+        except HTTPError:
+            print("   ⚠️ HTTP error")
+        except Exception as e:
+            print(f"   ❌ Error: {e}")
+
+    pbar.close()
+    print("\n====================")
+    print(f"Done: {accepted} samples collected in {tries} tries")

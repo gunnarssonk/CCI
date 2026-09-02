@@ -108,7 +108,7 @@ def train(
     # Initialize wandb. The timestamp keeps run names unique even if the same
     # exp_name/run_name pair is used twice.
     stamp = datetime.now().strftime("%m%d_%H%M")
-    log_name = f"{cfg.exp_name}_{cfg.run_name}_{stamp}"
+    log_name = f"{cfg.exp_name}_{cfg.run_name}_{cfg.data_dir}_{stamp}"
     wandb.init(
         project=cfg.project_name,
         name=log_name,
@@ -136,6 +136,11 @@ def train(
     # trained on and validated on ("leakage"), making the val score look better than
     # the model really is. Re-seeding forces both builds to use the identical order,
     # so the two slices can never overlap.
+
+    # only initize biomass dataset once, then split into train and val using the split_ratio
+    #biomass dataset would eg have a method called train_bio or val_bio that would have a version of it rather than re-create it 
+
+
     train_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="train", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False)
     random.seed(cfg.seed)
     val_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="val", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False)

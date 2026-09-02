@@ -19,20 +19,6 @@ elif '' in sys.path:
 # from geotessera import GeoTessera
 import ee
 
-output_dir = "data"
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
-# gt = GeoTessera()
-# ee.Initialize(project="alexcloud-489214")  # already authenticated
-project = os.getenv("EE_PROJECT", "esa-cci")
-# project = os.getenv('EE_PROJECT', 'alexcloud-489214')
-ee.Initialize(project=project)
-
-
-
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Dataset class
 # ─────────────────────────────────────────────────────────────────────────────
@@ -284,6 +270,16 @@ def make_dataloaders(data_dir, patch_size=64, batch_size=32, use_ae=False, num_w
 
 if __name__ == "__main__":
     DATA_DIR = "data"
+
+    output_dir = "data"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # gt = GeoTessera()
+    # ee.Initialize(project="alexcloud-489214")  # already authenticated
+    project = os.getenv("EE_PROJECT", "esa-cci")
+    # project = os.getenv('EE_PROJECT', 'alexcloud-489214')
+    ee.Initialize(project=project)
 
     # Step 1: compute and save normalization stats (run once)
     print("=== Computing normalization stats ===")

@@ -1,10 +1,12 @@
 trash/
 data/
-data_uniform/
+# one dir per region: data_uniform, data_sweden, ...
+data_*/
 visu/
 old_data/
 
 wandb/
+wandb_*/
 checkpoints/
 model.pt
 
@@ -19,3 +21,6 @@ web_tiles/
 
 .DS_Store
 .vscode/
+
+# local notes, not for the shared repo
+CLAUDE.md
