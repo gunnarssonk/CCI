@@ -24,3 +24,6 @@ web_tiles/
 
 # local notes, not for the shared repo
 CLAUDE.md
+
+# training run output
+logs_*.txt

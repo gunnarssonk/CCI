@@ -1,7 +1,9 @@
 #!/Users/klara.gunnarsson/miniforge3/envs/esa_env/bin/python
 import argparse
 from dataclasses import dataclass, fields
+import json
 import os
+import subprocess
 import io
 import sys
 import time
@@ -22,7 +24,10 @@ from tqdm import tqdm
 @dataclass
 class Config:
     """Configuration for the dataset to build."""
-    output_dir: str = "data_uniform"
+    # No default on purpose. A default output_dir once caused two Sweden runs to be
+    # appended into "data_uniform" because --output_dir was forgotten, leaving a
+    # folder that was 2/3 Swedish while still being treated as French data.
+    output_dir: str = None
     master_dim: int = 256
     buffer_deg: float = 0.09  # ~10km
     total_samples: int = 100
@@ -31,6 +36,11 @@ class Config:
     country: str = "France"
 
     def __post_init__(self):
+        if not self.output_dir:
+            raise SystemExit(
+                "--output_dir is required. Name it for what it will contain, "
+                "e.g. --output_dir data_france_2020"
+            )
         self.ae_dir: str = os.path.join(self.output_dir, "ae_embeddings")
         self.target_dir: str = os.path.join(self.output_dir, "targets")
         # Ensure directories exist
@@ -203,6 +213,58 @@ def fetch_agb(geom, year, master_dim):
     return arr
 
 
+
+def write_manifest(config, accepted, tries, coords):
+    """Append a record of this run to <output_dir>/manifest.json.
+
+    build.py appends to whatever directory it is given, so one folder can hold
+    tiles from several runs -- possibly with different countries, years or code
+    versions. Nothing in the .npy files themselves records any of that, so a
+    mixed folder is invisible until someone parses coordinates out of filenames.
+    This manifest makes each run's provenance explicit.
+    """
+    path = os.path.join(config.output_dir, "manifest.json")
+
+    runs = []
+    if os.path.exists(path):
+        try:
+            with open(path) as f:
+                runs = json.load(f).get("runs", [])
+        except (json.JSONDecodeError, OSError):
+            print("   ⚠️ existing manifest unreadable, starting a new one")
+
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=5,
+        ).stdout.strip() or "unknown"
+    except Exception:
+        commit = "unknown"
+
+    record = {
+        "finished": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "country": config.country,
+        "year": config.year,
+        "requested": config.total_samples,
+        "accepted": accepted,
+        "tries": tries,
+        "buffer_deg": config.buffer_deg,
+        "master_dim": config.master_dim,
+        "git_commit": commit,
+        "ae_collection": "GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL",
+        "agb_collection": "projects/sat-io/open-datasets/ESA/ESA_CCI_AGB",
+    }
+    if coords:
+        lats = [c[0] for c in coords]; lons = [c[1] for c in coords]
+        record["lat_range"] = [round(min(lats), 4), round(max(lats), 4)]
+        record["lon_range"] = [round(min(lons), 4), round(max(lons), 4)]
+
+    runs.append(record)
+    with open(path, "w") as f:
+        json.dump({"runs": runs}, f, indent=2)
+    print(f"📝 manifest updated → {path} ({len(runs)} run(s) recorded)")
+
+
 # ==============================
 # MAIN LOOP
 # a lot of things are hardcoded - when running enter on command line country and samples - make it wasier to change sample and location 
@@ -225,6 +287,7 @@ if __name__ == "__main__":
     country = country_boundaries.filter(ee.Filter.eq('country_na', config.country)).geometry()
     accepted = 0 
     tries = 0
+    coords = []   # lat/lon of accepted tiles, recorded in the manifest
 
     pbar = tqdm(total=config.total_samples, desc="Accepted samples", unit="sample")
     while accepted < config.total_samples and tries < config.max_tries:
@@ -253,6 +316,7 @@ if __name__ == "__main__":
 
             np.save(os.path.join(config.ae_dir, f"{name}_ae.npy"), ae)
             np.save(os.path.join(config.target_dir, f"{name}_y.npy"), agb)
+            coords.append((lat, lon))
 
             #print(f"✅ Accepted sample {accepted}")
             accepted += 1
@@ -273,5 +337,6 @@ if __name__ == "__main__":
             print(f"   ❌ Error: {e}")
 
     pbar.close()
+    write_manifest(config, accepted, tries, coords)
     print("\n====================")
     print(f"Done: {accepted} samples collected in {tries} tries")
