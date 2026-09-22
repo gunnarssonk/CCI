@@ -1,4 +1,5 @@
 trash/
+old/
 data/
 # one dir per region: data_uniform, data_sweden, ...
 data_*/
