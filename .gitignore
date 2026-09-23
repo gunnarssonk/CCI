@@ -27,3 +27,6 @@ CLAUDE.md
 
 # training run output
 logs/
+
+# evaluation: keep metrics.json / per_tile.csv / scatter.png, skip the big per-tile example figures
+results/*/tiles/
