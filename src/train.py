@@ -1,4 +1,5 @@
-import os, torch, wandb, argparse, math, random
+
+import os, json, torch, wandb, argparse, math, random
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
@@ -89,11 +90,22 @@ class Config:
     patience: int = 50
 
     # data — logged to wandb so a run records which dataset it used
-    data_dir: str = "data_uniform"
+    data_dir: str = "data_gee/data_france_2020_v2"
     use_ae: bool = True
+    # Standardise inputs per channel (stats from a 20-tile sample of data_dir) and
+    # divide targets by target_scale so the loss is O(1) instead of O(1000). Both
+    # are saved to train_meta.json next to the checkpoint; evaluate.py reads them
+    # back so predictions come out in Mg/ha again. Runs before 2026-09-23 used
+    # neither (normalize=False, target_scale=1).
+    normalize: bool = True
+    target_scale: float = 100.0
     split_train: float = 0.7
     split_val: float = 0.15
     seed: int = 42          # controls the train/val/test split; keep fixed to compare runs
+    # Seed for weight init and batch order only. None → same as `seed`. Vary this
+    # (and not `seed`) for repeat runs, so the test tiles stay identical and the
+    # spread in the metrics is model variance, not split variance.
+    init_seed: int = None
 
     exp_name: str = "0"
     run_name: str = "run_0"
@@ -119,7 +131,8 @@ def train(
     # Initialize wandb. The timestamp keeps run names unique even if the same
     # exp_name/run_name pair is used twice.
     stamp = datetime.now().strftime("%m%d_%H%M")
-    log_name = f"{cfg.exp_name}_{cfg.run_name}_{cfg.data_dir}_{stamp}"
+    # basename so a nested path like data_gee/data_uniform doesn't put a "/" in the name
+    log_name = f"{cfg.exp_name}_{cfg.run_name}_{os.path.basename(cfg.data_dir.rstrip('/'))}_{stamp}"
     wandb.init(
         project=cfg.project_name,
         name=log_name,
@@ -136,9 +149,9 @@ def train(
     # are actually comparable to each other.
     random.seed(cfg.seed)
     np.random.seed(cfg.seed)
-    torch.manual_seed(cfg.seed)
+    torch.manual_seed(cfg.seed if cfg.init_seed is None else cfg.init_seed)
 
-    ae_stats = compute_normalization_stats(data_dir, sample_tiles=20, subdir="ae_embeddings", out="norm_stats_ae.json")
+    ae_stats = compute_normalization_stats(data_dir, sample_tiles=20, subdir="ae_embeddings", out="norm_stats_ae.json") if cfg.normalize else None
 
     # BiomassDataset shuffles the tile list itself and then slices it: the first 70%
     # become "train", the next 15% become "val". Because we build it twice, it would
@@ -152,9 +165,9 @@ def train(
     #biomass dataset would eg have a method called train_bio or val_bio that would have a version of it rather than re-create it 
 
 
-    train_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="train", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False)
+    train_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="train", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False, seed=cfg.seed, norm_stats=ae_stats)
     random.seed(cfg.seed)
-    val_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="val", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False)
+    val_ds = BiomassDataset(data_dir, patch_size=cfg.patch_size, split="val", split_ratio=split_ratio, use_ae=cfg.use_ae, augment=False, seed=cfg.seed, norm_stats=ae_stats)
 
     train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
     val_loader = DataLoader(val_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
@@ -192,6 +205,21 @@ def train(
     os.makedirs(run_dir, exist_ok=True)
     ckpt_path = os.path.join(run_dir, "model.pth")
 
+    # Everything evaluate.py needs to feed this checkpoint the same inputs it saw
+    # in training and to turn its outputs back into Mg/ha.
+    with open(os.path.join(run_dir, "train_meta.json"), "w") as f:
+        json.dump({
+            "model_name": cfg.model_name,
+            "normalize": cfg.normalize,
+            "norm_stats": ae_stats,
+            "target_scale": cfg.target_scale,
+            "data_dir": cfg.data_dir,
+            "seed": cfg.seed,
+            "init_seed": cfg.init_seed,
+            "split_train": cfg.split_train,
+            "split_val": cfg.split_val,
+        }, f)
+
     # =========================
     #      TRAINING LOOP
     # =========================
@@ -206,7 +234,7 @@ def train(
         model.train() ; train_loss = 0
         train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1} [Train]", leave=False)
         for x, y, valid, _ in train_bar:
-            x = x.to(device) ; y = y.to(device).squeeze(-1) ; valid = valid.to(device)
+            x = x.to(device) ; y = y.to(device).squeeze(-1) / cfg.target_scale ; valid = valid.to(device)
 
             pred = model(x)
             # Mean squared error over usable pixels only. The dataset has already
@@ -231,7 +259,7 @@ def train(
         val_bar = tqdm(val_loader, desc=f"Epoch {epoch+1} [Val]", leave=False)
         with torch.no_grad():
             for i, (x, y, valid, _) in enumerate(val_bar):
-                x = x.to(device) ; y = y.to(device).squeeze(-1) ; valid = valid.to(device)
+                x = x.to(device) ; y = y.to(device).squeeze(-1) / cfg.target_scale ; valid = valid.to(device)
 
                 pred = model(x)
                 # same masked loss as the training loop, so the two are comparable
@@ -244,8 +272,8 @@ def train(
                 if i == 0:
                     vis_batch = (
                         x.detach().cpu(),
-                        y.detach().cpu(),
-                        pred.detach().cpu()
+                        y.detach().cpu() * cfg.target_scale,     # back to Mg/ha for the plot
+                        pred.detach().cpu() * cfg.target_scale
                     )
 
         avg_val_loss = val_loss / len(val_loader)

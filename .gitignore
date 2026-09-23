@@ -1,7 +1,6 @@
 trash/
 old/
-data/
-# one dir per region: data_uniform, data_sweden, ...
+# downloaded datasets: data_gee/<region>/
 data_*/
 visu/
 old_data/
@@ -27,4 +26,4 @@ web_tiles/
 CLAUDE.md
 
 # training run output
-logs_*.txt
+logs/

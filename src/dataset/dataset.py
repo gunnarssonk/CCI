@@ -52,13 +52,33 @@ class BiomassDataset(Dataset):
         augment     : random rot90 + horizontal flip (training only, optional)
     """
 
-    def __init__(self, data_dir, patch_size=64, split="train", split_ratio=(0.7, 0.15, 0.15), use_ae=False, augment=False, seed=42):
+    def __init__(self, data_dir, patch_size=64, split="train", split_ratio=(0.7, 0.15, 0.15), use_ae=False, augment=False, seed=42,
+                 norm_stats=None):
+        """
+        norm_stats: None → inputs are returned raw (how every checkpoint before
+                    2026-09-23 was trained). A dict {"mean": [...], "std": [...]}
+                    (64 values each) → inputs are standardised per channel. Pass the
+                    exact stats a checkpoint was trained with when evaluating it;
+                    train.py saves them next to the checkpoint for that reason.
+        """
         # self.patch_size = patch_size ; self.use_ae = use_ae ; self.augment = augment
         data_dir = Path(data_dir)  # emb_dir  = data_dir / "embeddings"
+
+        if norm_stats is not None:
+            self.ae_mean = np.asarray(norm_stats["mean"], dtype=np.float32)
+            self.ae_std = np.asarray(norm_stats["std"], dtype=np.float32)
+            self.ae_std[self.ae_std == 0] = 1.0
+        else:
+            self.ae_mean = None
+            self.ae_std = None
         ae_dir = data_dir / "ae_embeddings"
         y_dir = data_dir / "targets"
 
         all_names = [f.stem.replace("_ae", "") for f in ae_dir.glob("*_ae.npy")]
+        if not all_names:
+            # Fail loudly: a wrong --data_dir used to give "test: 0 tiles" and an
+            # IndexError much later, which was confusing to trace back.
+            raise FileNotFoundError(f"No *_ae.npy tiles found in {ae_dir} — check --data_dir")
 
         # Split via _default_split, which uses its own private random generator.
         # The previous version shuffled with the global `random` module here, which
@@ -79,18 +99,6 @@ class BiomassDataset(Dataset):
                 self.samples.append((ae_path, y_path, name))
 
         print(f"{split}: {len(self.samples)} tiles")
-
-        # ae_stats_path = data_dir / "norm_stats_ae.json"
-        # if ae_stats_path.exists():
-        #     with open(ae_stats_path) as f:
-        #         ae_stats = json.load(f)
-        #     self.ae_mean = np.array(ae_stats["mean"], dtype=np.float32)
-        #     self.ae_std  = np.array(ae_stats["std"],  dtype=np.float32)
-        #     print(f"Loaded AE normalization stats → mean shape {self.ae_mean}, std shape {self.ae_std}")
-        # else:
-        #     if use_ae:
-        #         print(f"Warning: {ae_stats_path} not found — skipping AE normalization.")
-        #     self.ae_mean = 0 ; self.ae_std  = 1
 
         # # ── Split manifest ────────────────────────────────────────────────────
         # print("Splitting the current data")
@@ -171,6 +179,12 @@ class BiomassDataset(Dataset):
         bad = (x < NODATA_THRESHOLD).any(axis=-1)      # (H, W) True where no data
         x = np.where(x < NODATA_THRESHOLD, 0.0, x)
         valid = (~bad).astype(np.float32)              # 1.0 = usable, 0.0 = ignore
+
+        # Standardise per channel, then re-zero the no-data pixels so they stay at
+        # a neutral value rather than becoming (0 - mean) / std.
+        if self.ae_mean is not None:
+            x = (x - self.ae_mean) / self.ae_std
+            x[bad] = 0.0
 
         # to tensor
         x = torch.from_numpy(x).float() ; y = torch.from_numpy(y).float()
