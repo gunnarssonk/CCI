@@ -39,14 +39,16 @@ class Config:
         if not self.output_dir:
             raise SystemExit(
                 "--output_dir is required. Name it for what it will contain, "
-                "e.g. --output_dir data_france_2020"
+                "e.g. --output_dir data_gee/data_france_2020"
             )
         self.ae_dir: str = os.path.join(self.output_dir, "ae_embeddings")
         self.target_dir: str = os.path.join(self.output_dir, "targets")
+        self.sd_dir: str = os.path.join(self.output_dir, "targets_sd")   # CCI per-pixel uncertainty
         # Ensure directories exist
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.ae_dir, exist_ok=True)
         os.makedirs(self.target_dir, exist_ok=True)
+        os.makedirs(self.sd_dir, exist_ok=True)
 
 
 def str2bool(value):
@@ -136,11 +138,14 @@ def fetch_alphaearth(geom, bounds, master_dim, year):
                .filterBounds(geom)
                .sort('system:time_start', False))
 
-    ae_img = ae_coll.first()
-    if ae_img is None:
+    # The annual collection is a patchwork of many images, each with its own footprint.
+    # .first() used to pick a single one, so any box straddling a footprint edge came
+    # back partly as no-data fill (16 of 100 France-2020 tiles, ~7% of all pixels, one
+    # tile fully empty). mosaic() stitches every image covering the box instead.
+    if ae_coll.size().getInfo() == 0:
         return None
 
-    ae_img = ae_img.unmask(0).toFloat()
+    ae_img = ae_coll.mosaic().unmask(0).toFloat()
 
     bands = [f"A{i:02d}" for i in range(64)]
     chunk_size = 64
@@ -178,18 +183,24 @@ def fetch_alphaearth(geom, bounds, master_dim, year):
     return ae
 
 # give the function a year, download the target data from google earth engine and return as numpy array
-def fetch_agb(geom, year, master_dim):
-    agb = (ee.ImageCollection("projects/sat-io/open-datasets/ESA/ESA_CCI_AGB")
+def fetch_agb(geom, year, master_dim, with_sd=False):
+    """Download the CCI biomass tile. Returns (H, W, 1) AGB in Mg/ha, or with
+    with_sd=True a tuple (agb, sd) where sd is CCI's own per-pixel standard
+    deviation. Both bands come from ONE request so they are pixel-aligned: two
+    separate downloads of the same box can differ on ~3% of pixels, because the
+    100 m source is resampled to the tile grid with nearest neighbour and edge
+    pixels flip between neighbours."""
+    img = (ee.ImageCollection("projects/sat-io/open-datasets/ESA/ESA_CCI_AGB")
            .filterDate(f"{year}-01-01", f"{year}-12-31")
            .filterBounds(geom)
            .first())
 
-    if agb is None:
+    if img is None:
         return None
 
-    agb = agb.select('AGB')
+    img = img.select(['AGB', 'SD'] if with_sd else ['AGB'])
 
-    url = agb.getDownloadURL({
+    url = img.getDownloadURL({
         'region': geom,
         'format': 'GEO_TIFF',
         'dimensions': f'{master_dim}x{master_dim}',
@@ -206,11 +217,15 @@ def fetch_agb(geom, year, master_dim):
         if arr.ndim == 2:
             arr = arr[..., None]
 
+    agb = arr[..., :1]
+
     # quality check
-    if np.mean(arr) < 1e-3:
+    if np.mean(agb) < 1e-3:
         return None
 
-    return arr
+    if with_sd:
+        return agb, arr[..., 1:2]
+    return agb
 
 
 
@@ -304,10 +319,11 @@ if __name__ == "__main__":
                 print("❌ AlphaEarth invalid")
                 continue
 
-            agb = fetch_agb(geom, config.year, config.master_dim)
-            if agb is None:
+            fetched = fetch_agb(geom, config.year, config.master_dim, with_sd=True)
+            if fetched is None:
                 print("❌ AGB invalid")
                 continue
+            agb, sd = fetched
 
             # SAVE
             #name = f"sample_{accepted:05d}"
@@ -316,6 +332,7 @@ if __name__ == "__main__":
 
             np.save(os.path.join(config.ae_dir, f"{name}_ae.npy"), ae)
             np.save(os.path.join(config.target_dir, f"{name}_y.npy"), agb)
+            np.save(os.path.join(config.sd_dir, f"{name}_sd.npy"), sd)
             coords.append((lat, lon))
 
             #print(f"✅ Accepted sample {accepted}")
