@@ -49,7 +49,7 @@ modules from the project root (`python -m src.train`), never as file paths.
 ### 1. Download data
 
 ```bash
-python -m src.dataset.build --country France --year 2020 --total_samples 100 --output_dir data_gee/data_france_2020_v2
+python -m src.dataset.build_gee --country France --year 2020 --total_samples 100 --output_dir data_gee/data_france_2020_v2
 ```
 
 Slow (~13 s per tile), uses Earth Engine quota. `--output_dir` is required and the
@@ -65,7 +65,7 @@ cannot install into `.venv`, so it lives in its own conda env:
 ```bash
 bash setup/default/ect_env.sh            # once
 mamba activate ect                       # instead of .venv, for the two commands below
-python -m src.dataset.ect_targets --ecv BIOMASS                   # list datasets; --list-ecvs for all ECVs
+python -m src.dataset.targets_ect --ecv BIOMASS                   # list datasets; --list-ecvs for all ECVs
 python -m src.dataset.build_ect --country France --year 2020 --total_samples 100 --output_dir data_gee/data_france_2020_ect
 ```
 
@@ -73,7 +73,7 @@ Embeddings still come from Earth Engine; only the target changes. Output layout 
 identical, so `train.py` / `evaluate.py` (in `.venv`) work unchanged. Pass
 `--data_id <dataset> --store <store>` for another ECV; value and uncertainty
 variables are auto-detected or set with `--var` / `--sd_var`. The toolbox returns
-data on its native grid; `ect_targets.py` resamples it (nearest neighbour) onto the
+data on its native grid; `targets_ect.py` resamples it (nearest neighbour) onto the
 tile grid. `--backfill` / `--compare` fetch toolbox targets for an existing GEE dataset
 and report pixel agreement.
 
@@ -132,9 +132,9 @@ python -m src.evaluate --model_name Ridge
 Writes `results/<name>/` with `metrics.json` (RMSE, MAE, R², bias, per-tile spread),
 `per_tile.csv`, `scatter.png` and a few example tile figures. Only valid pixels count.
 
-CCI ships a per-pixel standard deviation (its own uncertainty). `build.py` saves it as
+CCI ships a per-pixel standard deviation (its own uncertainty). `build_gee.py` saves it as
 `targets_sd/`; for older datasets back-fill it with
-`python -m src.dataset.fetch_sd --data_dir <dir>`. When present, `evaluate.py` also
+`python -m src.dataset.fetch_sd_gee --data_dir <dir>`. When present, `evaluate.py` also
 reports the model error relative to it (`rmse_over_cci_sd`, `frac_within_1sd`) and
 plots `error_vs_cci_sd.png`. A ratio near 1 means the model is as accurate as the
 reference map claims to be.
@@ -159,14 +159,14 @@ needed before interpreting it.
 
 | Path | What |
 |---|---|
-| `src/dataset/build.py` | Earth Engine download loop → `.npy` tiles + manifest |
+| `src/dataset/build_gee.py` | Earth Engine download loop → `.npy` tiles + manifest |
 | `src/dataset/dataset.py` | `BiomassDataset`: tile loading, no-data masking, normalisation, seeded split |
 | `src/model/model.py` | `SmallCNN`, `PointWiseModel` |
 | `src/train.py` | `Config`, training loop, early stopping, wandb |
 | `src/evaluate.py` | Metrics, plots, ridge baseline, comparison to CCI uncertainty |
-| `src/dataset/ect_targets.py` | ESA Climate Toolbox access + regridding; discovery / back-fill / compare CLI (env `ect`) |
-| `src/dataset/build_ect.py` | Dataset builder with toolbox targets, same layout as `build.py` (env `ect`) |
-| `src/dataset/fetch_sd.py` | Back-fill CCI uncertainty for datasets built before `build.py` saved it |
+| `src/dataset/targets_ect.py` | ESA Climate Toolbox access + regridding; discovery / back-fill / compare CLI (env `ect`) |
+| `src/dataset/build_ect.py` | Dataset builder with toolbox targets, same layout as `build_gee.py` (env `ect`) |
+| `src/dataset/fetch_sd_gee.py` | Back-fill CCI uncertainty for datasets built before `build_gee.py` saved it |
 | `setup/` | Environment scripts for Mac/Linux (`default/`) and Windows; `ect_env.sh` for the toolbox env |
 | `data_gee/`, `checkpoints/`, `results/`, `logs/`, `wandb/`, `visu/` | Local outputs, gitignored except `results/` if you choose to commit it |
 

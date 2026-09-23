@@ -1,8 +1,8 @@
 """Fetch CCI's per-pixel uncertainty (the SD band) for tiles that were downloaded
-before build.py saved it. Writes <data_dir>/targets_sd/<name>_sd.npy for every
+before build_gee.py saved it. Writes <data_dir>/targets_sd/<name>_sd.npy for every
 tile in <data_dir>/targets/, skipping ones that already exist.
 
-    python -m src.dataset.fetch_sd --data_dir data_gee/data_france_2020_v2
+    python -m src.dataset.fetch_sd_gee --data_dir data_gee/data_france_2020_v2
 
 Tile centre lat/lon is parsed from the filename; buffer, year and size come from
 manifest.json. Note the SD comes from a separate request to the one that produced
@@ -15,7 +15,7 @@ import ee
 import numpy as np
 from tqdm import tqdm
 
-from src.dataset.build import build_geom, fetch_agb
+from src.dataset.build_gee import build_geom, fetch_agb
 
 NAME_RE = re.compile(r"lat([+-]\d+\.\d+)_lon([+-]\d+\.\d+)_(\d+)")
 

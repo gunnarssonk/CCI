@@ -1,6 +1,6 @@
 """Build a dataset folder with AlphaEarth embeddings from Google Earth Engine and
 targets from the ESA Climate Toolbox (any CCI dataset), in the same layout that
-build.py produces, so train.py and evaluate.py work unchanged:
+build_gee.py produces, so train.py and evaluate.py work unchanged:
 
     <output_dir>/ae_embeddings/<name>_ae.npy   (H, W, 64)
     <output_dir>/targets/<name>_y.npy          (H, W, 1)
@@ -13,7 +13,7 @@ Runs in the `ect` environment (setup/default/ect_env.sh):
     python -m src.dataset.build_ect --country France --year 2020 --total_samples 100 --output_dir data_gee/data_france_2020_ect
     python -m src.dataset.build_ect ... --data_id esacci.<other ECV dataset id>
 
-The GEE-only builder (build.py) is untouched; this reuses its point sampling,
+The GEE-only builder (build_gee.py) is untouched; this reuses its point sampling,
 geometry and embedding download by import.
 """
 import os, json, time, argparse
@@ -23,8 +23,8 @@ import ee
 import numpy as np
 from tqdm import tqdm
 
-from src.dataset.build import build_geom, fetch_alphaearth, sample_point_in_zone, write_manifest, str2bool
-from src.dataset.ect_targets import EctTarget, DEFAULT_DATA_ID, DEFAULT_STORE
+from src.dataset.build_gee import build_geom, fetch_alphaearth, sample_point_in_zone, write_manifest, str2bool
+from src.dataset.targets_ect import EctTarget, DEFAULT_DATA_ID, DEFAULT_STORE
 
 
 @dataclass
@@ -63,7 +63,7 @@ def args_extract(parser):
 
 
 def add_target_to_manifest(output_dir, target, last_meta):
-    """write_manifest() (from build.py) hardcodes the GEE AGB collection; append the
+    """write_manifest() (from build_gee.py) hardcodes the GEE AGB collection; append the
     real target provenance to the record it just wrote."""
     path = os.path.join(output_dir, "manifest.json")
     with open(path) as f:

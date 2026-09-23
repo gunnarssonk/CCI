@@ -3,12 +3,12 @@
 #
 # Why a separate env: `uv pip install esa-climate-toolbox` into .venv fails because
 # its GDAL dependency needs the system libgdal, which pip cannot provide. conda-forge
-# ships it. build.py / build_ect.py / ect_targets.py never import torch, so an
+# ships it. build_gee.py / build_ect.py / targets_ect.py never import torch, so an
 # ECT dataset build runs entirely in this env, and train/evaluate stay in .venv.
 #
 # Usage (run once):    bash setup/default/ect_env.sh
 # Then per session:    mamba activate ect        (instead of the .venv activation)
-#                      python -m src.dataset.ect_targets --ecv BIOMASS
+#                      python -m src.dataset.targets_ect --ecv BIOMASS
 
 set -e
 MAMBA_BASE="$HOME/miniforge3"

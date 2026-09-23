@@ -6,11 +6,11 @@ torch. It needs the `ect` environment (setup/default/ect_env.sh), because the
 toolbox depends on GDAL which pip cannot install into .venv.
 
     mamba activate ect
-    python -m src.dataset.ect_targets --list-ecvs
-    python -m src.dataset.ect_targets --ecv BIOMASS
-    python -m src.dataset.ect_targets --data_id esacci.BIOMASS.yr.L4.AGB.multi-sensor.multi-platform.MERGED.6-0.100m --store esa-cci
-    python -m src.dataset.ect_targets --backfill --data_dir data_gee/data_france_2020_v2 --n 10
-    python -m src.dataset.ect_targets --compare  --data_dir data_gee/data_france_2020_v2
+    python -m src.dataset.targets_ect --list-ecvs
+    python -m src.dataset.targets_ect --ecv BIOMASS
+    python -m src.dataset.targets_ect --data_id esacci.BIOMASS.yr.L4.AGB.multi-sensor.multi-platform.MERGED.6-0.100m --store esa-cci
+    python -m src.dataset.targets_ect --backfill --data_dir data_gee/data_france_2020_v2 --n 10
+    python -m src.dataset.targets_ect --compare  --data_dir data_gee/data_france_2020_v2
 
 How it differs from the GEE path: Earth Engine resampled every layer to the tile
 grid (dim x dim over the bbox) server-side. The toolbox returns the dataset on its

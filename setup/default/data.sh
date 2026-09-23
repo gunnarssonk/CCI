@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script sets up dependencies, then builds the dataset via src/dataset/build.py.
+# Script sets up dependencies, then builds the dataset via src/dataset/build_gee.py.
 
 # Stop script if any command fails
 set -e
@@ -26,8 +26,8 @@ check_ee_auth
 
 # Build the dataset by running the Python module
 # Note: On Linux, we use '/' for paths and usually call the script directly
-# src/dataset/build.py as a module ("-m src.dataset.build").
+# src/dataset/build_gee.py as a module ("-m src.dataset.build_gee").
 
 echo -e "\e[36mBuilding the dataset...\e[0m"
 
-uv run python3 -m src.dataset.build
+uv run python3 -m src.dataset.build_gee

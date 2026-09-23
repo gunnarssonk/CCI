@@ -66,5 +66,5 @@ if ($checkResult -like "*SUCCESS*") {
 
 # Building the dataset
 Write-Host "Building the dataset..."  -ForegroundColor Cyan
-uv run python -m src.dataset.build
+uv run python -m src.dataset.build_gee
 #uv run python -m src.dataset.build_dataset
