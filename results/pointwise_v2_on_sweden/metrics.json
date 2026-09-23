@@ -1,0 +1,32 @@
+{
+  "name": "pointwise_v2_on_sweden",
+  "evaluated": "2026-09-23T16:19:07",
+  "config": {
+    "model_name": "PointWiseModel",
+    "checkpoint": "checkpoints/france2020_v2/pointwise_0923_0921/model.pth",
+    "data_dir": "data_gee/data_sweden_v2",
+    "split": "all",
+    "name": "pointwise_v2_on_sweden",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 6553600,
+    "rmse": 38.504154205322266,
+    "mae": 29.735265731811523,
+    "bias": 25.591781616210938,
+    "r2": 0.2941694738991538,
+    "true_mean": 54.809818267822266,
+    "true_std": 45.83079528808594,
+    "pred_mean": 80.40160369873047,
+    "tile_rmse_mean": 35.983529348373416,
+    "tile_rmse_std": 13.702390242174948,
+    "n_tiles": 100
+  }
+}

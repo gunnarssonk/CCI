@@ -1,0 +1,32 @@
+{
+  "name": "cnn_0923_0922_data_france_2020_v2_test",
+  "evaluated": "2026-09-23T13:08:15",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/france2020_v2/cnn_0923_0922/model.pth",
+    "data_dir": "data_gee/data_france_2020_v2",
+    "split": "test",
+    "name": null,
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 983040,
+    "rmse": 26.540319442749023,
+    "mae": 15.744318962097168,
+    "bias": -1.2687181234359741,
+    "r2": 0.8120731508288931,
+    "true_mean": 42.825294494628906,
+    "true_std": 61.22259521484375,
+    "pred_mean": 41.55657196044922,
+    "tile_rmse_mean": 25.16483720143636,
+    "tile_rmse_std": 8.433239110481079,
+    "n_tiles": 15
+  }
+}

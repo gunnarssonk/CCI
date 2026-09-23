@@ -1,0 +1,32 @@
+{
+  "name": "pointwise_0923_0921_data_france_2020_v2_test",
+  "evaluated": "2026-09-23T13:08:19",
+  "config": {
+    "model_name": "PointWiseModel",
+    "checkpoint": "checkpoints/france2020_v2/pointwise_0923_0921/model.pth",
+    "data_dir": "data_gee/data_france_2020_v2",
+    "split": "test",
+    "name": null,
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 983040,
+    "rmse": 30.377580642700195,
+    "mae": 19.236589431762695,
+    "bias": -1.1680251359939575,
+    "r2": 0.7538029130741783,
+    "true_mean": 42.825294494628906,
+    "true_std": 61.22259521484375,
+    "pred_mean": 41.65726852416992,
+    "tile_rmse_mean": 29.263338088989258,
+    "tile_rmse_std": 8.15195805204639,
+    "n_tiles": 15
+  }
+}

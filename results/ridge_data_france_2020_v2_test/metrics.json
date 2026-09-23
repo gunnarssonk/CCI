@@ -1,0 +1,32 @@
+{
+  "name": "ridge_data_france_2020_v2_test",
+  "evaluated": "2026-09-23T13:08:25",
+  "config": {
+    "model_name": "Ridge",
+    "checkpoint": null,
+    "data_dir": "data_gee/data_france_2020_v2",
+    "split": "test",
+    "name": null,
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 983040,
+    "rmse": 31.747081756591797,
+    "mae": 22.54216766357422,
+    "bias": 2.1376805305480957,
+    "r2": 0.7311041025112639,
+    "true_mean": 42.825294494628906,
+    "true_std": 61.22259521484375,
+    "pred_mean": 44.96297073364258,
+    "tile_rmse_mean": 30.71933784484863,
+    "tile_rmse_std": 8.012456627760791,
+    "n_tiles": 15
+  }
+}

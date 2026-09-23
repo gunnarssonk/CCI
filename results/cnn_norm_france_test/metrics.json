@@ -1,0 +1,38 @@
+{
+  "name": "cnn_norm_france_test",
+  "evaluated": "2026-09-23T22:00:08",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/france2020_v2norm/cnn_0923_1504/model.pth",
+    "data_dir": "data_gee/data_france_2020_v2",
+    "split": "test",
+    "name": "cnn_norm_france_test",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 983040,
+    "rmse": 26.299606323242188,
+    "mae": 16.396799087524414,
+    "bias": 1.08034086227417,
+    "r2": 0.8154665798102996,
+    "true_mean": 42.825294494628906,
+    "true_std": 61.22259521484375,
+    "pred_mean": 43.90563201904297,
+    "tile_rmse_mean": 25.063346989949544,
+    "tile_rmse_std": 7.968555584406763,
+    "n_tiles": 15,
+    "cci_sd_mean": 20.86400032043457,
+    "cci_sd_rms": 35.848445892333984,
+    "frac_sd_gt0": 0.5752960205078125,
+    "rmse_over_cci_sd": 0.7336331009864807,
+    "frac_within_1sd": 0.6586088669393269,
+    "frac_within_2sd": 0.8417350527549824
+  }
+}
