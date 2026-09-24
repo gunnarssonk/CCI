@@ -16,6 +16,9 @@ python -m src.evaluate --checkpoint checkpoints/france2020_long/cnn_0907_1024/mo
 
 # ridge baseline: fit on the train split, evaluate on the test split
 python -m src.evaluate --model_name Ridge --data_dir data_gee/data_france_2020
+
+# ensemble: several checkpoints, comma-separated; predictions are averaged
+python -m src.evaluate --checkpoint a/model.pth,b/model.pth,c/model.pth --model_name SmallCNN --name ensemble3
 """
 import os, json, csv, argparse
 from dataclasses import dataclass, fields
@@ -100,12 +103,17 @@ def target_mask(y):
 # ─────────────────────────────────────────────────────────────────────────────
 # Predictors: both return (pred, y, valid, name) per batch, on CPU
 # ─────────────────────────────────────────────────────────────────────────────
-def predict_torch(model, loader, device, target_scale=1.0):
-    model.eval()
+def predict_torch(models, loader, device, target_scale=1.0):
+    """`models` is a list; with several, predictions are averaged (an ensemble).
+    All members must have been trained with the same normalization and target
+    scale, which evaluate() checks before calling this."""
+    for m in models:
+        m.eval()
     with torch.no_grad():
         for x, y, valid, names in loader:
             y = y.squeeze(-1)
-            pred = model(x.to(device)).cpu() * target_scale   # back to Mg/ha
+            xd = x.to(device)
+            pred = torch.stack([m(xd).cpu() for m in models]).mean(0) * target_scale   # back to Mg/ha
             valid = valid.bool() & target_mask(y)
             yield pred, y, valid, names
 
@@ -284,19 +292,29 @@ def evaluate(cfg: Config):
             raise ValueError(f"Unknown model_name {cfg.model_name!r}. Choose one of: {', '.join(MODELS)}, Ridge")
         if not cfg.checkpoint:
             raise ValueError("--checkpoint is required for a trained model")
-        ckpt_dir = os.path.basename(os.path.dirname(cfg.checkpoint))
-        name = cfg.name or f"{ckpt_dir}_{os.path.basename(cfg.data_dir.rstrip('/'))}_{cfg.split}"
+        # One path, or several comma-separated for an ensemble (predictions averaged).
+        ckpts = [c.strip() for c in cfg.checkpoint.split(",") if c.strip()]
+        ckpt_dir = os.path.basename(os.path.dirname(ckpts[0]))
+        tag = f"ensemble{len(ckpts)}_{ckpt_dir}" if len(ckpts) > 1 else ckpt_dir
+        name = cfg.name or f"{tag}_{os.path.basename(cfg.data_dir.rstrip('/'))}_{cfg.split}"
 
-        meta = load_train_meta(cfg.checkpoint)
+        metas = [load_train_meta(c) for c in ckpts]
+        meta = metas[0]
+        for c, m in zip(ckpts[1:], metas[1:]):
+            if (m.get("normalize"), m.get("norm_stats"), m.get("target_scale")) != (meta.get("normalize"), meta.get("norm_stats"), meta.get("target_scale")):
+                raise ValueError(f"ensemble members must share normalization and target_scale; {c} differs from {ckpts[0]}")
         norm_stats = meta["norm_stats"] if meta.get("normalize") else None
         target_scale = float(meta.get("target_scale", 1.0))
-        print(f"Checkpoint meta: normalize={norm_stats is not None}, target_scale={target_scale}")
+        print(f"Checkpoint meta: normalize={norm_stats is not None}, target_scale={target_scale}, members={len(ckpts)}")
 
         eval_ds_probe = load_split(cfg, cfg.split, norm_stats)
         in_channels = eval_ds_probe[0][0].shape[-1]
-        model = MODELS[cfg.model_name](in_channels).to(device)
-        model.load_state_dict(torch.load(cfg.checkpoint, map_location=device))
-        make_batches = lambda loader: predict_torch(model, loader, device, target_scale)
+        models = []
+        for c in ckpts:
+            m = MODELS[cfg.model_name](in_channels).to(device)
+            m.load_state_dict(torch.load(c, map_location=device))
+            models.append(m)
+        make_batches = lambda loader: predict_torch(models, loader, device, target_scale)
 
     out_dir = os.path.join(cfg.out_root, name)
     os.makedirs(out_dir, exist_ok=True)
