@@ -55,11 +55,17 @@ class Config:
             os.makedirs(d, exist_ok=True)
 
 
-def args_extract(parser):
-    for f in fields(Config):
+def args_for(config_cls, parser=None):
+    """Every field of a Config dataclass as a CLI flag (same pattern as build_gee.py)."""
+    parser = parser or argparse.ArgumentParser()
+    for f in fields(config_cls):
         t = str2bool if f.type is bool else f.type
         parser.add_argument(f"--{f.name}", type=t, default=f.default)
     return vars(parser.parse_args())
+
+
+def args_extract(parser):
+    return args_for(Config, parser)
 
 
 def add_target_to_manifest(output_dir, target, last_meta):
@@ -77,12 +83,13 @@ def add_target_to_manifest(output_dir, target, last_meta):
         json.dump(doc, f, indent=2)
 
 
-if __name__ == "__main__":
-    ee.Initialize(project=os.getenv("EE_PROJECT", "esa-cci"))   # still needed: sampling + AlphaEarth
+def run_build(config, target):
+    """The sampling / download loop, shared by build_ect.py and build_jasmin.py.
 
-    config = Config(**args_extract(argparse.ArgumentParser()))
-    target = EctTarget(config.data_id, config.store_id, config.var, config.sd_var, config.method, config.fill_value)
-
+    `target` is any object with
+        fetch(bbox, year, dim) -> (y (dim,dim,1), sd (dim,dim,1) or None, meta) or None
+        describe()             -> dict for the manifest
+    Earth Engine must already be initialised (point sampling + AlphaEarth)."""
     country_boundaries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
     country = country_boundaries.filter(ee.Filter.eq("country_na", config.country)).geometry()
 
@@ -120,3 +127,12 @@ if __name__ == "__main__":
     write_manifest(config, accepted, tries, coords)
     add_target_to_manifest(config.output_dir, target, last_meta)
     print(f"\nDone: {accepted} samples collected in {tries} tries")
+    return accepted, tries
+
+
+if __name__ == "__main__":
+    ee.Initialize(project=os.getenv("EE_PROJECT", "esa-cci"))   # still needed: sampling + AlphaEarth
+
+    config = Config(**args_extract(argparse.ArgumentParser()))
+    target = EctTarget(config.data_id, config.store_id, config.var, config.sd_var, config.method, config.fill_value)
+    run_build(config, target)
