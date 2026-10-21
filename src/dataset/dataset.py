@@ -27,6 +27,20 @@ import ee
 NODATA_THRESHOLD = -1e30
 
 
+def split_dirs(data_dir):
+    """`data_dir` may name one folder, or several separated by commas (same convention
+    as --checkpoint in evaluate.py). Returns a list of Paths. A list/tuple passes through."""
+    if isinstance(data_dir, (list, tuple)):
+        return [Path(d) for d in data_dir]
+    return [Path(d.strip()) for d in str(data_dir).split(",") if d.strip()]
+
+
+def data_tag(data_dir):
+    """Short label for run names and plot titles: the folder basenames joined by '+',
+    e.g. 'data_france_2020_j+data_finland_2020_j'."""
+    return "+".join(d.name for d in split_dirs(data_dir))
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Dataset class
 # ─────────────────────────────────────────────────────────────────────────────
@@ -43,7 +57,11 @@ class BiomassDataset(Dataset):
             norm_stats_ae.json                     AlphaEarth stats 
 
     Args:
-        data_dir    : root folder described above
+        data_dir    : root folder described above, or several such folders separated
+                      by commas (multi-region training). Each folder is split on its
+                      own with the same seed and the splits are concatenated, so a
+                      region's test tiles are identical whether it is trained alone
+                      or together with others.
         patch_size  : square patch side length in pixels
         split       : "train" | "val" | "test"
         split_file  : optional path to a JSON manifest with explicit splits
@@ -62,8 +80,6 @@ class BiomassDataset(Dataset):
                     train.py saves them next to the checkpoint for that reason.
         """
         # self.patch_size = patch_size ; self.use_ae = use_ae ; self.augment = augment
-        data_dir = Path(data_dir)  # emb_dir  = data_dir / "embeddings"
-
         if norm_stats is not None:
             self.ae_mean = np.asarray(norm_stats["mean"], dtype=np.float32)
             self.ae_std = np.asarray(norm_stats["std"], dtype=np.float32)
@@ -71,34 +87,49 @@ class BiomassDataset(Dataset):
         else:
             self.ae_mean = None
             self.ae_std = None
-        ae_dir = data_dir / "ae_embeddings"
-        y_dir = data_dir / "targets"
-
-        all_names = [f.stem.replace("_ae", "") for f in ae_dir.glob("*_ae.npy")]
-        if not all_names:
-            # Fail loudly: a wrong --data_dir used to give "test: 0 tiles" and an
-            # IndexError much later, which was confusing to trace back.
-            raise FileNotFoundError(f"No *_ae.npy tiles found in {ae_dir} — check --data_dir")
-
-        # Split via _default_split, which uses its own private random generator.
-        # The previous version shuffled with the global `random` module here, which
-        # meant the ordering depended on how many random numbers anything else had
-        # already drawn. compute_normalization_stats() draws 20 of them between the
-        # train and val builds, so the two ended up with different orderings and
-        # their slices overlapped: 28 of 45 val tiles were also training tiles.
-        # Ordering now depends only on `seed`.
-        names = self._default_split(all_names, split, split_ratio=split_ratio, seed=seed)
 
         self.samples = []
+        # name -> path of CCI's per-pixel SD tile, if the dataset has a targets_sd/
+        # folder. Kept here (rather than rebuilt from cfg.data_dir in evaluate.py)
+        # because with several folders each tile's SD lives next to its own target.
+        self.sd_paths = {}
 
-        for name in names:
-            ae_path = ae_dir / f"{name}_ae.npy"
-            y_path  = y_dir / f"{name}_y.npy"
+        dirs = split_dirs(data_dir)
+        for d in dirs:
+            ae_dir = d / "ae_embeddings"
+            y_dir = d / "targets"
+            sd_dir = d / "targets_sd"
 
-            if ae_path.exists() and y_path.exists():
-                self.samples.append((ae_path, y_path, name))
+            all_names = [f.stem.replace("_ae", "") for f in ae_dir.glob("*_ae.npy")]
+            if not all_names:
+                # Fail loudly: a wrong --data_dir used to give "test: 0 tiles" and an
+                # IndexError much later, which was confusing to trace back.
+                raise FileNotFoundError(f"No *_ae.npy tiles found in {ae_dir} — check --data_dir")
 
-        print(f"{split}: {len(self.samples)} tiles")
+            # Split via _default_split, which uses its own private random generator.
+            # The previous version shuffled with the global `random` module here, which
+            # meant the ordering depended on how many random numbers anything else had
+            # already drawn. compute_normalization_stats() draws 20 of them between the
+            # train and val builds, so the two ended up with different orderings and
+            # their slices overlapped: 28 of 45 val tiles were also training tiles.
+            # Ordering now depends only on `seed`.
+            names = self._default_split(all_names, split, split_ratio=split_ratio, seed=seed)
+
+            n_before = len(self.samples)
+            for name in names:
+                ae_path = ae_dir / f"{name}_ae.npy"
+                y_path  = y_dir / f"{name}_y.npy"
+
+                if ae_path.exists() and y_path.exists():
+                    self.samples.append((ae_path, y_path, name))
+                    sd_path = sd_dir / f"{name}_sd.npy"
+                    if sd_path.exists():
+                        self.sd_paths[name] = sd_path
+
+            print(f"{split}: {len(self.samples) - n_before} tiles from {d.name}")
+
+        if len(dirs) > 1:
+            print(f"{split}: {len(self.samples)} tiles in total")
 
         # # ── Split manifest ────────────────────────────────────────────────────
         # print("Splitting the current data")
@@ -234,18 +265,24 @@ def compute_normalization_stats(data_dir, sample_tiles=20, subdir="ae_embeddings
     """
     Welford online mean/std over a sample of tiles.
     Works for any embedding dimensionality — infers n_channels from first file.
+
+    data_dir may be several comma-separated folders; then `sample_tiles` tiles are
+    drawn from *each* so every region is represented in the stats. The stats file
+    is only written for a single folder (for several, the copy train.py saves in
+    train_meta.json is the record).
     """
-    emb_dir = Path(data_dir) / subdir
+    dirs = split_dirs(data_dir)
     pattern = "*_ae.npy" if subdir == "ae_embeddings" else "*_ae.npy"
 
-    all_paths = list(emb_dir.glob(pattern))
-    if not all_paths:
-        raise FileNotFoundError(f"No files matching '{pattern}' in {emb_dir}")
-
-    # 2. Randomly sample 'sample_tiles' or the total count, whichever is smaller
-    n_to_sample = min(len(all_paths), sample_tiles) if sample_tiles else len(all_paths)
-    paths = random.sample(all_paths, k=n_to_sample)
-    # paths = list(emb_dir.glob(pattern))[:sample_tiles]
+    paths = []
+    for d in dirs:
+        emb_dir = d / subdir
+        all_paths = list(emb_dir.glob(pattern))
+        if not all_paths:
+            raise FileNotFoundError(f"No files matching '{pattern}' in {emb_dir}")
+        # Randomly sample 'sample_tiles' or the total count, whichever is smaller
+        n_to_sample = min(len(all_paths), sample_tiles) if sample_tiles else len(all_paths)
+        paths += random.sample(all_paths, k=n_to_sample)
 
     if not paths:
         raise FileNotFoundError(f"No files matching '{pattern}' in {emb_dir}")
@@ -268,11 +305,13 @@ def compute_normalization_stats(data_dir, sample_tiles=20, subdir="ae_embeddings
     std = np.sqrt(M2 / count)
     stats = {"mean": mean.tolist(), "std": std.tolist()}
 
-    out_path = Path(data_dir) / out
-    with open(out_path, "w") as f:
-        json.dump(stats, f)
-
-    print(f"Saved normalization stats ({n_channels}ch, {count} pixels) → {out_path}")
+    if len(dirs) == 1:
+        out_path = dirs[0] / out
+        with open(out_path, "w") as f:
+            json.dump(stats, f)
+        print(f"Saved normalization stats ({n_channels}ch, {count} pixels) → {out_path}")
+    else:
+        print(f"Normalization stats ({n_channels}ch, {count} pixels) from {len(dirs)} folders; not written to disk")
     return stats
 
 

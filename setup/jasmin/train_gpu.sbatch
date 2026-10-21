@@ -6,6 +6,8 @@
 #     mkdir -p logs
 #     sbatch setup/jasmin/train_gpu.sbatch                 # run_name "cnn", default init
 #     sbatch setup/jasmin/train_gpu.sbatch cnn_s1 1        # run_name, init_seed
+#     sbatch setup/jasmin/train_gpu.sbatch cnn "" $D/data_france_2020_j,$D/data_finland_2020_j jasmin_fr_fi
+#                                     # 3rd: data_dir(s), comma-separated; 4th: exp_name
 #     squeue -u $USER                 # is it queued / running?
 #     tail -f logs/slurm-<jobid>.out
 #
@@ -27,11 +29,13 @@ export WANDB_MODE=offline        # no account needed; `wandb sync wandb/offline-
 
 RUN_NAME="${1:-cnn}"             # 1st argument, default "cnn"
 SEED_FLAG=""
-[ -n "$2" ] && SEED_FLAG="--init_seed $2"   # 2nd argument, optional
+[ -n "$2" ] && SEED_FLAG="--init_seed $2"   # 2nd argument, optional ("" to skip)
+DATA_DIR="${3:-/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j}"   # 3rd, optional
+EXP_NAME="${4:-jasmin_france}"   # 4th, optional
 
 python -m src.train \
-    --data_dir /gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j \
+    --data_dir "$DATA_DIR" \
     --model_name SmallCNN \
-    --exp_name jasmin_france \
+    --exp_name "$EXP_NAME" \
     --run_name "$RUN_NAME" \
     --epochs 600 $SEED_FLAG

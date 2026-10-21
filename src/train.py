@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from datetime import datetime
 from dataclasses import dataclass, asdict, fields
-from src.dataset.dataset import BiomassDataset, compute_normalization_stats
+from src.dataset.dataset import BiomassDataset, compute_normalization_stats, data_tag
 from src.model.model import SmallCNN, PointWiseModel
 
 import matplotlib.pyplot as plt
@@ -89,7 +89,9 @@ class Config:
     # Set to 0 to disable and always run the full `epochs`.
     patience: int = 50
 
-    # data — logged to wandb so a run records which dataset it used
+    # data — logged to wandb so a run records which dataset it used. Several folders
+    # separated by commas train on all of them (each split on its own, see
+    # BiomassDataset), e.g. --data_dir data_gee/a,data_gee/b
     data_dir: str = "data_gee/data_france_2020_v2"
     use_ae: bool = True
     # Standardise inputs per channel (stats from a 20-tile sample of data_dir) and
@@ -132,7 +134,7 @@ def train(
     # exp_name/run_name pair is used twice.
     stamp = datetime.now().strftime("%m%d_%H%M")
     # basename so a nested path like data_gee/data_uniform doesn't put a "/" in the name
-    log_name = f"{cfg.exp_name}_{cfg.run_name}_{os.path.basename(cfg.data_dir.rstrip('/'))}_{stamp}"
+    log_name = f"{cfg.exp_name}_{cfg.run_name}_{data_tag(cfg.data_dir)}_{stamp}"
     wandb.init(
         project=cfg.project_name,
         name=log_name,

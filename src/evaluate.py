@@ -31,7 +31,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from src.dataset.dataset import BiomassDataset
+from src.dataset.dataset import BiomassDataset, data_tag
 from src.model.model import SmallCNN, PointWiseModel
 
 
@@ -53,7 +53,7 @@ MODELS = {
 class Config:
     model_name: str = "PointWiseModel"   # one of MODELS, or "Ridge"
     checkpoint: str = None               # path to model.pth; not needed for Ridge
-    data_dir: str = "data_gee/data_france_2020_v2"
+    data_dir: str = "data_gee/data_france_2020_v2"   # or several, comma-separated
     split: str = "test"                  # train | val | test | all
     name: str = None                     # results/<name>/; defaults to checkpoint folder name
     out_root: str = "results"
@@ -78,7 +78,9 @@ def load_split(cfg, split, norm_stats=None):
     if split == "all":
         ds = BiomassDataset(cfg.data_dir, split="train", **kw)
         for s in ("val", "test"):
-            ds.samples += BiomassDataset(cfg.data_dir, split=s, **kw).samples
+            other = BiomassDataset(cfg.data_dir, split=s, **kw)
+            ds.samples += other.samples
+            ds.sd_paths.update(other.sd_paths)
         return ds
     return BiomassDataset(cfg.data_dir, split=split, **kw)
 
@@ -284,7 +286,7 @@ def evaluate(cfg: Config):
 
     norm_stats = None
     if cfg.model_name == "Ridge":
-        name = cfg.name or f"ridge_{os.path.basename(cfg.data_dir.rstrip('/'))}_{cfg.split}"
+        name = cfg.name or f"ridge_{data_tag(cfg.data_dir)}_{cfg.split}"
         model = fit_ridge(cfg)
         make_batches = lambda loader: predict_ridge(model, loader)
     else:
@@ -296,7 +298,7 @@ def evaluate(cfg: Config):
         ckpts = [c.strip() for c in cfg.checkpoint.split(",") if c.strip()]
         ckpt_dir = os.path.basename(os.path.dirname(ckpts[0]))
         tag = f"ensemble{len(ckpts)}_{ckpt_dir}" if len(ckpts) > 1 else ckpt_dir
-        name = cfg.name or f"{tag}_{os.path.basename(cfg.data_dir.rstrip('/'))}_{cfg.split}"
+        name = cfg.name or f"{tag}_{data_tag(cfg.data_dir)}_{cfg.split}"
 
         metas = [load_train_meta(c) for c in ckpts]
         meta = metas[0]
@@ -325,9 +327,9 @@ def evaluate(cfg: Config):
     loader = DataLoader(eval_ds, batch_size=cfg.batch_size, shuffle=False, num_workers=0)
     print(f"Evaluating {cfg.model_name} on {cfg.data_dir} [{cfg.split}]: {len(eval_ds)} tiles")
 
-    # CCI's own per-pixel uncertainty (SD band), if it was downloaded for this dataset
-    sd_dir = os.path.join(cfg.data_dir, "targets_sd")
-    have_sd = os.path.isdir(sd_dir)
+    # CCI's own per-pixel uncertainty (SD band), if it was downloaded for this dataset.
+    # The dataset records each tile's SD path, because with several --data_dir
+    # folders the SD tile sits next to its own target.
 
     all_pred, all_true, all_sd, per_tile = [], [], [], []
     saved_examples = 0
@@ -341,8 +343,8 @@ def evaluate(cfg: Config):
                 print(f"  skipping {names[b]}: no valid pixels")
                 continue
             m = metrics(p[v], t[v])
-            sd_path = os.path.join(sd_dir, f"{names[b]}_sd.npy")
-            if have_sd and os.path.exists(sd_path):
+            sd_path = eval_ds.sd_paths.get(names[b])
+            if sd_path is not None:
                 sd = np.load(sd_path).squeeze()
                 m.update(sd_metrics(p[v], t[v], sd[v]))
                 all_sd.append(sd[v])
@@ -364,7 +366,7 @@ def evaluate(cfg: Config):
         all_sd = np.concatenate(all_sd)
         overall.update(sd_metrics(all_pred, all_true, all_sd))
         error_vs_sd_plot(all_pred, all_true, all_sd, overall,
-                         f"{cfg.model_name} · {os.path.basename(cfg.data_dir.rstrip('/'))} [{cfg.split}]",
+                         f"{cfg.model_name} · {data_tag(cfg.data_dir)} [{cfg.split}]",
                          os.path.join(out_dir, "error_vs_cci_sd.png"))
     elif all_sd:
         print(f"  SD found for only {len(all_sd)} of {len(per_tile)} tiles; skipping the SD comparison")
@@ -382,7 +384,7 @@ def evaluate(cfg: Config):
         w = csv.DictWriter(f, fieldnames=list(per_tile[0].keys()))
         w.writeheader(); w.writerows(sorted(per_tile, key=lambda r: r["rmse"]))
     scatter_plot(all_pred, all_true, overall,
-                 f"{cfg.model_name} · {os.path.basename(cfg.data_dir.rstrip('/'))} [{cfg.split}]",
+                 f"{cfg.model_name} · {data_tag(cfg.data_dir)} [{cfg.split}]",
                  os.path.join(out_dir, "scatter.png"))
 
     print()
