@@ -6,9 +6,12 @@
 #     mkdir -p logs
 #     sbatch setup/jasmin/train_gpu.sbatch                 # run_name "cnn", default init
 #     sbatch setup/jasmin/train_gpu.sbatch cnn_s1 1        # run_name, init_seed
-#     sbatch setup/jasmin/train_gpu.sbatch cnn "" $D/data_france_2020_j,$D/data_finland_2020_j jasmin_fr_fi
+#     sbatch setup/jasmin/train_gpu.sbatch cnn "" $D/data_france_2020_j300,$D/data_finland_2020_j jasmin_fr_fi
 #                                     # 3rd: data_dir(s), comma-separated; 4th: exp_name
+#     sbatch setup/jasmin/train_gpu.sbatch pw "" $D/data_france_2020_j300 jasmin_fr300 PointWiseModel
+#                                     # 5th: model_name (default SmallCNN)
 #     squeue -u $USER                 # is it queued / running?
+#     scancel <jobid>                 # stop a job
 #     tail -f logs/slurm-<jobid>.out
 #
 # If sbatch rejects the account/qos names, check
@@ -30,12 +33,15 @@ export WANDB_MODE=offline        # no account needed; `wandb sync wandb/offline-
 RUN_NAME="${1:-cnn}"             # 1st argument, default "cnn"
 SEED_FLAG=""
 [ -n "$2" ] && SEED_FLAG="--init_seed $2"   # 2nd argument, optional ("" to skip)
-DATA_DIR="${3:-/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j}"   # 3rd, optional
+DATA_DIR="${3:-/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j300}"   # 3rd, optional
 EXP_NAME="${4:-jasmin_france}"   # 4th, optional
+MODEL="${5:-SmallCNN}"           # 5th, optional: SmallCNN or PointWiseModel
 
+# epochs is only an upper bound: early stopping (patience 50) ends the run once
+# val_loss stops improving. 2000 so the slow-converging PointWiseModel is not cut off.
 python -m src.train \
     --data_dir "$DATA_DIR" \
-    --model_name SmallCNN \
+    --model_name "$MODEL" \
     --exp_name "$EXP_NAME" \
     --run_name "$RUN_NAME" \
-    --epochs 600 $SEED_FLAG
+    --epochs 2000 $SEED_FLAG
