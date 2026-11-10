@@ -34,4 +34,8 @@ fi
 # 5. Activate
 mamba activate "$ENV_NAME"
 
+# 6. Where uv keeps the project packages. The ".nosync" suffix stops OneDrive from
+#    syncing the folder (syncing turns the venv's python symlinks into text files).
+export UV_PROJECT_ENVIRONMENT=.venv.nosync
+
 echo "Active Environment: $ENV_NAME (Python $PYTHON_VERSION)"

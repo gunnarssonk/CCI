@@ -34,6 +34,7 @@ class Config:
     max_tries: int = 100000  # safety caps
     year: int = 2020
     country: str = "France"
+    append: bool = False      # add tiles to a folder that already has some (off by default)
 
     def __post_init__(self):
         if not self.output_dir:
@@ -44,11 +45,31 @@ class Config:
         self.ae_dir: str = os.path.join(self.output_dir, "ae_embeddings")
         self.target_dir: str = os.path.join(self.output_dir, "targets")
         self.sd_dir: str = os.path.join(self.output_dir, "targets_sd")   # CCI per-pixel uncertainty
+        refuse_unless_append(self.ae_dir, self.output_dir, self.append)
         # Ensure directories exist
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.ae_dir, exist_ok=True)
         os.makedirs(self.target_dir, exist_ok=True)
         os.makedirs(self.sd_dir, exist_ok=True)
+
+
+def refuse_unless_append(ae_dir, output_dir, append):
+    """Stop if output_dir already holds tiles and --append was not given.
+
+    Every builder appends: filenames carry lat/lon, so a second run never overwrites,
+    it silently adds another batch of random tiles. This once left a folder with
+    three builds stacked. Resuming a partial build (count existing tiles, continue
+    to total_samples) is deliberately not offered: the index in the filename would
+    restart at 0 and the manifest would need merging. Use a new folder instead.
+    """
+    if append or not os.path.isdir(ae_dir):
+        return
+    n = len([f for f in os.listdir(ae_dir) if f.endswith("_ae.npy")])
+    if n:
+        raise SystemExit(
+            f"{output_dir} already holds {n} tiles. Pass --append true to add to it, "
+            "or use a new folder."
+        )
 
 
 def str2bool(value):

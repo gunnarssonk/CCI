@@ -23,7 +23,7 @@ import ee
 import numpy as np
 from tqdm import tqdm
 
-from src.dataset.build_gee import build_geom, fetch_alphaearth, sample_point_in_zone, write_manifest, str2bool
+from src.dataset.build_gee import build_geom, fetch_alphaearth, sample_point_in_zone, write_manifest, str2bool, refuse_unless_append
 from src.dataset.targets_ect import EctTarget, DEFAULT_DATA_ID, DEFAULT_STORE
 
 
@@ -44,6 +44,7 @@ class Config:
     sd_var: str = None              # uncertainty variable; auto-detected if None
     method: str = "nearest"         # regridding: nearest | linear
     fill_value: float = 0.0         # written where the source has no data
+    append: bool = False            # add tiles to a folder that already has some
 
     def __post_init__(self):
         if not self.output_dir:
@@ -51,6 +52,7 @@ class Config:
         self.ae_dir = os.path.join(self.output_dir, "ae_embeddings")
         self.target_dir = os.path.join(self.output_dir, "targets")
         self.sd_dir = os.path.join(self.output_dir, "targets_sd")
+        refuse_unless_append(self.ae_dir, self.output_dir, self.append)
         for d in (self.output_dir, self.ae_dir, self.target_dir, self.sd_dir):
             os.makedirs(d, exist_ok=True)
 

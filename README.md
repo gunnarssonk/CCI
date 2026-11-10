@@ -16,7 +16,7 @@ You need `mamba` (or `conda`). Check with `mamba --version`; if missing, install
 
 ```bash
 source setup/default/env.sh    # Mac/Linux: creates + activates the mamba env `esa_env` (provides `uv`)
-bash setup/default/data.sh     # installs packages into .venv/ via uv, authenticates Earth Engine
+bash setup/default/data.sh     # installs packages into .venv.nosync/ via uv, authenticates Earth Engine
 wandb login                    # once; key from https://wandb.ai/authorize (use the copy button)
 ```
 
@@ -24,21 +24,25 @@ Windows: `.\setup\windows\env.ps1`, `.\setup\windows\data.ps1` (edit the mamba p
 
 There are **two environment layers**, and both are needed:
 
-| | `esa_env` (mamba) | `.venv/` (in the project folder) |
+| | `esa_env` (mamba) | `.venv.nosync/` (in the project folder) |
 |---|---|---|
 | What it is | environment activated by `env.sh` | folder of installed packages |
 | What's in it | basically just `uv` | torch, wandb, numpy, earthengine-api, rasterio, ... |
 | Who made it | `env.sh` | `uv`, the first time `data.sh` ran |
 
-`env.sh` hands you the toolbox (`uv`); `.venv` holds the tools. If `wandb` or `torch`
-is "not found", `.venv` isn't active.
+`env.sh` hands you the toolbox (`uv`); `.venv.nosync` holds the tools. If `wandb` or `torch`
+is "not found", `.venv.nosync` isn't active.
+
+The `.nosync` suffix makes OneDrive skip the folder. A venv is machine-specific and
+must not be synced: OneDrive turns its `python` symlinks into text files and breaks it.
+On a machine without OneDrive (e.g. JASMIN) a plain `.venv` is fine.
 
 ## Every session
 
 ```bash
 cd <project folder>
 source setup/default/env.sh    # must be `source`, not `bash` — bash runs it in a subshell and loses the activation
-source .venv/bin/activate
+source .venv.nosync/bin/activate
 ```
 
 The prompt shows `(CCI) (esa_env)` when both are active. Always run things as
@@ -60,17 +64,17 @@ the `EE_PROJECT` env var (default `esa-cci`); re-auth with `earthengine authenti
 **Alternative: targets from the ESA Climate Toolbox** (any CCI ECV, not only biomass).
 The toolbox ([docs](https://esa-climate-toolbox.readthedocs.io/), [GitHub](https://github.com/esa-cci/esa-climate-toolbox))
 reads CCI datasets straight from the CCI Open Data Portal. It needs GDAL, which pip
-cannot install into `.venv`, so it lives in its own conda env:
+cannot install into `.venv.nosync`, so it lives in its own conda env:
 
 ```bash
 bash setup/default/ect_env.sh            # once
-mamba activate ect                       # instead of .venv, for the two commands below
+mamba activate ect                       # instead of .venv.nosync, for the two commands below
 python -m src.dataset.targets_ect --ecv BIOMASS                   # list datasets; --list-ecvs for all ECVs
 python -m src.dataset.build_ect --country France --year 2020 --total_samples 100 --output_dir data_gee/data_france_2020_ect
 ```
 
 Embeddings still come from Earth Engine; only the target changes. Output layout is
-identical, so `train.py` / `evaluate.py` (in `.venv`) work unchanged. Pass
+identical, so `train.py` / `evaluate.py` (in `.venv.nosync`) work unchanged. Pass
 `--data_id <dataset> --store <store>` for another ECV; value and uncertainty
 variables are auto-detected or set with `--var` / `--sd_var`. The toolbox returns
 data on its native grid; `targets_ect.py` resamples it (nearest neighbour) onto the
@@ -132,9 +136,8 @@ python -m src.evaluate --model_name Ridge
 Writes `results/<name>/` with `metrics.json` (RMSE, MAE, R², bias, per-tile spread),
 `per_tile.csv`, `scatter.png` and a few example tile figures. Only valid pixels count.
 
-CCI ships a per-pixel standard deviation (its own uncertainty). `build_gee.py` saves it as
-`targets_sd/`; for older datasets back-fill it with
-`python -m src.dataset.fetch_sd_gee --data_dir <dir>`. When present, `evaluate.py` also
+CCI ships a per-pixel standard deviation (its own uncertainty). Every builder saves it as
+`targets_sd/`. When present, `evaluate.py` also
 reports the model error relative to it (`rmse_over_cci_sd`, `frac_within_1sd`) and
 plots `error_vs_cci_sd.png`. A ratio near 1 means the model is as accurate as the
 reference map claims to be.
@@ -166,26 +169,24 @@ needed before interpreting it.
 | `src/evaluate.py` | Metrics, plots, ridge baseline, comparison to CCI uncertainty |
 | `src/dataset/targets_ect.py` | ESA Climate Toolbox access + regridding; discovery / back-fill / compare CLI (env `ect`) |
 | `src/dataset/build_ect.py` | Dataset builder with toolbox targets, same layout as `build_gee.py` (env `ect`) |
-| `src/dataset/fetch_sd_gee.py` | Back-fill CCI uncertainty for datasets built before `build_gee.py` saved it |
 | `setup/` | Environment scripts for Mac/Linux (`default/`) and Windows; `ect_env.sh` for the toolbox env |
 | `data_gee/`, `checkpoints/`, `results/`, `logs/`, `wandb/`, `visu/` | Local outputs, gitignored except `results/` if you choose to commit it |
 
 ## Troubleshooting
 
-**`import: command not found` or `syntax error near unexpected token` from anything in `.venv/bin`**
-— OneDrive. It flattens the venv's `python*` symlinks into text files on sync. Repair:
+**`import: command not found` or `syntax error near unexpected token` from anything in `.venv.nosync/bin`**
+— the venv got synced by OneDrive, which turns its `python*` symlinks into text files.
+Should not happen with the `.nosync` suffix; if it does, recreate the symlinks:
 
 ```bash
-BASE=$(awk -F'= *' '/^home/{print $2}' .venv/pyvenv.cfg)/python3   # interpreter the venv was built from
-cd .venv/bin && rm python python3 python3.13
+BASE=$(awk -F'= *' '/^home/{print $2}' .venv.nosync/pyvenv.cfg)/python3   # interpreter the venv was built from
+cd .venv.nosync/bin && rm python python3 python3.13
 ln -s "$BASE" python && ln -s python python3 && ln -s python python3.13
 ./python -V && cd ../..
 ```
 
-Recurs after every re-sync; the durable fix is keeping `.venv` outside the synced folder.
-
 **`command not found: uv`** — `env.sh` wasn't sourced.
-**`ModuleNotFoundError`** — `.venv` isn't active, or `uv pip install <name>`.
+**`ModuleNotFoundError`** — `.venv.nosync` isn't active, or `uv pip install <name>`.
 **`CommError: user is not logged in`** — stored wandb key is wrong; `wandb login --relogin`. A valid key is exactly 40 characters.
 **Earth Engine permission errors** — `earthengine authenticate`.
 **`OMP: Error #15` at startup** — two training processes launched within a couple of seconds of each other; relaunch the one that died.

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Creates the `ect` mamba environment for the ESA Climate Toolbox.
 #
-# Why a separate env: `uv pip install esa-climate-toolbox` into .venv fails because
+# Why a separate env: `uv pip install esa-climate-toolbox` into .venv.nosync fails because
 # its GDAL dependency needs the system libgdal, which pip cannot provide. conda-forge
 # ships it. build_gee.py / build_ect.py / targets_ect.py never import torch, so an
-# ECT dataset build runs entirely in this env, and train/evaluate stay in .venv.
+# ECT dataset build runs entirely in this env, and train/evaluate stay in .venv.nosync.
 #
 # Usage (run once):    bash setup/default/ect_env.sh
-# Then per session:    mamba activate ect        (instead of the .venv activation)
+# Then per session:    mamba activate ect        (instead of the .venv.nosync activation)
 #                      python -m src.dataset.targets_ect --ecv BIOMASS
 
 set -e

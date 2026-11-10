@@ -7,13 +7,15 @@ build_gee.py, so train.py / evaluate.py work unchanged.
         --output_dir /gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j
     python -m src.dataset.build_jasmin --country Sweden --version v7.0 ...
 
-Like the other builders it APPENDS to output_dir. One run per folder.
+Like the other builders it refuses to run into a folder that already has tiles
+unless --append true is given. One run per folder.
 """
 import os, argparse
 from dataclasses import dataclass
 
 import ee
 
+from src.dataset.build_gee import refuse_unless_append
 from src.dataset.build_ect import args_for, run_build
 from src.dataset.targets_cci_archive import ArchiveTarget, ARCHIVE_ROOT, DEFAULT_VERSION
 
@@ -32,6 +34,7 @@ class Config:
     archive_root: str = ARCHIVE_ROOT
     version: str = DEFAULT_VERSION  # v6.0 matches the GEE copy; v7.0 is the newest
     fill_value: float = 0.0
+    append: bool = False            # add tiles to a folder that already has some
 
     def __post_init__(self):
         if not self.output_dir:
@@ -39,6 +42,7 @@ class Config:
         self.ae_dir = os.path.join(self.output_dir, "ae_embeddings")
         self.target_dir = os.path.join(self.output_dir, "targets")
         self.sd_dir = os.path.join(self.output_dir, "targets_sd")
+        refuse_unless_append(self.ae_dir, self.output_dir, self.append)
         for d in (self.output_dir, self.ae_dir, self.target_dir, self.sd_dir):
             os.makedirs(d, exist_ok=True)
 
