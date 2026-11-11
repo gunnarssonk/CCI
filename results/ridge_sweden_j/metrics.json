@@ -1,0 +1,38 @@
+{
+  "name": "ridge_sweden_j",
+  "evaluated": "2026-10-22T10:26:25",
+  "config": {
+    "model_name": "Ridge",
+    "checkpoint": null,
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_sweden_2020_j",
+    "split": "test",
+    "name": "ridge_sweden_j",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 2949120,
+    "rmse": 19.03626251220703,
+    "mae": 14.194524765014648,
+    "bias": -0.35502392053604126,
+    "r2": 0.8349916152088799,
+    "true_mean": 51.43861389160156,
+    "true_std": 46.86284637451172,
+    "pred_mean": 51.083587646484375,
+    "tile_rmse_mean": 18.50172250535753,
+    "tile_rmse_std": 4.479459748702869,
+    "n_tiles": 45,
+    "cci_sd_mean": 26.991039276123047,
+    "cci_sd_rms": 36.55830383300781,
+    "frac_sd_gt0": 0.7144677056206598,
+    "rmse_over_cci_sd": 0.5207096934318542,
+    "frac_within_1sd": 0.8159375354464605,
+    "frac_within_2sd": 0.9196455140383408
+  }
+}
