@@ -15,6 +15,10 @@ Runs in the `ect` environment (setup/default/ect_env.sh):
 
 The GEE-only builder (build_gee.py) is untouched; this reuses its point sampling,
 geometry and embedding download by import.
+
+Used by:      build_jasmin.py borrows run_build() and args_for() from this file,
+              so do not delete it even if the toolbox itself is never used.
+Borrows from: build_gee.py (sampling, AlphaEarth download) and targets_ect.py.
 """
 import os, json, time, argparse
 from dataclasses import dataclass, fields

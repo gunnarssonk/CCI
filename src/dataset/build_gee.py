@@ -1,4 +1,11 @@
 #!/Users/klara.gunnarsson/miniforge3/envs/esa_env/bin/python
+"""Build a dataset folder with everything from Google Earth Engine: AlphaEarth
+embeddings and CCI biomass (+ SD).
+
+Used by: build_ect.py and build_jasmin.py borrow the shared pieces from this file
+(sampling, AlphaEarth download, write_manifest, refuse_unless_append). So do not
+delete it even if only the JASMIN builder is in use.
+"""
 import argparse
 from dataclasses import dataclass, fields
 import json

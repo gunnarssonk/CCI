@@ -9,6 +9,10 @@ build_gee.py, so train.py / evaluate.py work unchanged.
 
 Like the other builders it refuses to run into a folder that already has tiles
 unless --append true is given. One run per folder.
+
+Borrows from: build_ect.py (the shared download loop run_build), build_gee.py
+(refuse_unless_append) and targets_jasmin.py (reads the biomass from disk).
+All of those files are needed for a JASMIN build.
 """
 import os, argparse
 from dataclasses import dataclass
@@ -17,7 +21,7 @@ import ee
 
 from src.dataset.build_gee import refuse_unless_append
 from src.dataset.build_ect import args_for, run_build
-from src.dataset.targets_cci_archive import ArchiveTarget, ARCHIVE_ROOT, DEFAULT_VERSION
+from src.dataset.targets_jasmin import ArchiveTarget, ARCHIVE_ROOT, DEFAULT_VERSION
 
 
 @dataclass

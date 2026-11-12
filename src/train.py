@@ -218,6 +218,7 @@ def train(
             "data_dir": cfg.data_dir,
             "seed": cfg.seed,
             "init_seed": cfg.init_seed,
+            "n_train_tiles": len(train_ds),
             "split_train": cfg.split_train,
             "split_val": cfg.split_val,
         }, f)

@@ -143,7 +143,7 @@ def fit_ridge(cfg):
     print(f"Ridge: fitting on {len(Y):,} pixels from {len(train_ds)} train tiles")
     model = make_pipeline(StandardScaler(), Ridge(alpha=cfg.ridge_alpha))
     model.fit(X, Y)
-    return model
+    return model, len(train_ds)
 
 
 def predict_ridge(model, loader):
@@ -287,8 +287,11 @@ def evaluate(cfg: Config):
     norm_stats = None
     if cfg.model_name == "Ridge":
         name = cfg.name or f"ridge_{data_tag(cfg.data_dir)}_{cfg.split}"
-        model = fit_ridge(cfg)
+        model, n_fit_tiles = fit_ridge(cfg)
         make_batches = lambda loader: predict_ridge(model, loader)
+        # Ridge has no checkpoint: it is fitted here, on the train split of data_dir.
+        train_info = [{"checkpoint": None, "model_name": "Ridge", "data_dir": cfg.data_dir,
+                       "seed": cfg.seed, "n_train_tiles": n_fit_tiles}]
     else:
         if cfg.model_name not in MODELS:
             raise ValueError(f"Unknown model_name {cfg.model_name!r}. Choose one of: {', '.join(MODELS)}, Ridge")
@@ -302,6 +305,13 @@ def evaluate(cfg: Config):
 
         metas = [load_train_meta(c) for c in ckpts]
         meta = metas[0]
+        # How each checkpoint was trained, copied into metrics.json so the result
+        # still says what it is when the checkpoint folder is not around
+        # (src/collect_results.py reads this). norm_stats is left out: too long.
+        train_info = [{"checkpoint": c, **{k: v for k, v in m.items() if k != "norm_stats"}}
+                      if os.path.exists(os.path.join(os.path.dirname(c), "train_meta.json"))
+                      else {"checkpoint": c}
+                      for c, m in zip(ckpts, metas)]
         for c, m in zip(ckpts[1:], metas[1:]):
             if (m.get("normalize"), m.get("norm_stats"), m.get("target_scale")) != (meta.get("normalize"), meta.get("norm_stats"), meta.get("target_scale")):
                 raise ValueError(f"ensemble members must share normalization and target_scale; {c} differs from {ckpts[0]}")
@@ -376,6 +386,7 @@ def evaluate(cfg: Config):
         "name": name,
         "evaluated": datetime.now().isoformat(timespec="seconds"),
         "config": {f.name: getattr(cfg, f.name) for f in fields(cfg)},
+        "train": train_info,
         "metrics": overall,
     }
     with open(os.path.join(out_dir, "metrics.json"), "w") as f:
