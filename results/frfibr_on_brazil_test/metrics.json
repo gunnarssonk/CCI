@@ -1,0 +1,38 @@
+{
+  "name": "frfibr_on_brazil_test",
+  "evaluated": "2026-11-11T09:08:21",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/jasmin_fr_fi_br/cnn_1022_1107/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_brazil_2020_j",
+    "split": "test",
+    "name": "frfibr_on_brazil_test",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 2949120,
+    "rmse": 45.59519958496094,
+    "mae": 31.569000244140625,
+    "bias": -4.721724510192871,
+    "r2": 0.8691456558243237,
+    "true_mean": 159.3074951171875,
+    "true_std": 126.04483032226562,
+    "pred_mean": 154.58578491210938,
+    "tile_rmse_mean": 41.09038357204861,
+    "tile_rmse_std": 19.761139920687004,
+    "n_tiles": 45,
+    "cci_sd_mean": 75.51589965820312,
+    "cci_sd_rms": 98.73783874511719,
+    "frac_sd_gt0": 0.8355014377170139,
+    "rmse_over_cci_sd": 0.4617803990840912,
+    "frac_within_1sd": 0.824212234283038,
+    "frac_within_2sd": 0.954446317645254
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "frfibr_on_france_test",
+  "evaluated": "2026-11-11T09:07:15",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/jasmin_fr_fi_br/cnn_1022_1107/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j300",
+    "split": "test",
+    "name": "frfibr_on_france_test",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 2949120,
+    "rmse": 24.39206314086914,
+    "mae": 14.270346641540527,
+    "bias": -2.67586612701416,
+    "r2": 0.8473398378125407,
+    "true_mean": 40.771392822265625,
+    "true_std": 62.42890167236328,
+    "pred_mean": 38.09552764892578,
+    "tile_rmse_mean": 23.420129203796385,
+    "tile_rmse_std": 6.816915095360106,
+    "n_tiles": 45,
+    "cci_sd_mean": 19.48107147216797,
+    "cci_sd_rms": 35.024574279785156,
+    "frac_sd_gt0": 0.5305402967664931,
+    "rmse_over_cci_sd": 0.6964271068572998,
+    "frac_within_1sd": 0.6661964800556299,
+    "frac_within_2sd": 0.8660473071217613
+  }
+}

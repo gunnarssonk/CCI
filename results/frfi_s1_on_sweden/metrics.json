@@ -1,0 +1,38 @@
+{
+  "name": "frfi_s1_on_sweden",
+  "evaluated": "2026-11-11T09:10:56",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/jasmin_fr_fi/cnn_s1_1022_1107/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_sweden_2020_j",
+    "split": "all",
+    "name": "frfi_s1_on_sweden",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 19660800,
+    "rmse": 17.566585540771484,
+    "mae": 12.083942413330078,
+    "bias": 1.0890848636627197,
+    "r2": 0.8513837336447182,
+    "true_mean": 50.57096862792969,
+    "true_std": 45.56739044189453,
+    "pred_mean": 51.66005325317383,
+    "tile_rmse_mean": 16.719888657331467,
+    "tile_rmse_std": 5.387969897334371,
+    "n_tiles": 300,
+    "cci_sd_mean": 26.830917358398438,
+    "cci_sd_rms": 36.173397064208984,
+    "frac_sd_gt0": 0.7103644816080729,
+    "rmse_over_cci_sd": 0.4856216609477997,
+    "frac_within_1sd": 0.846594961856132,
+    "frac_within_2sd": 0.9447270844303165
+  }
+}
