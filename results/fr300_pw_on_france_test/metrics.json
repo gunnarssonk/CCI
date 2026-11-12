@@ -1,0 +1,38 @@
+{
+  "name": "fr300_pw_on_france_test",
+  "evaluated": "2026-11-12T11:42:10",
+  "config": {
+    "model_name": "PointWiseModel",
+    "checkpoint": "checkpoints/jasmin_fr300/pw_1111_0905/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j300",
+    "split": "test",
+    "name": "fr300_pw_on_france_test",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 2949120,
+    "rmse": 25.150123596191406,
+    "mae": 14.793408393859863,
+    "bias": 0.5834363698959351,
+    "r2": 0.8377036040796411,
+    "true_mean": 40.771392822265625,
+    "true_std": 62.42890167236328,
+    "pred_mean": 41.354827880859375,
+    "tile_rmse_mean": 24.14515912797716,
+    "tile_rmse_std": 7.038471331580825,
+    "n_tiles": 45,
+    "cci_sd_mean": 19.48107147216797,
+    "cci_sd_rms": 35.024574279785156,
+    "frac_sd_gt0": 0.5305402967664931,
+    "rmse_over_cci_sd": 0.7180708050727844,
+    "frac_within_1sd": 0.6669263664758438,
+    "frac_within_2sd": 0.8579437782934847
+  }
+}
