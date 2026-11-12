@@ -21,6 +21,23 @@ The table is rebuilt by `python -m src.collect_results`; do not edit it by hand.
 | `date` | The day the evaluation was run. |
 | `checkpoint_path` | Where the saved model file is. Empty for `Ridge`, which has no saved model. |
 
+## How the folder names are built
+
+`<trained on>_<model>_<seed>_on_<scored on>_<pile>`, for example `fr300_cnn_s1_on_sw300_all`.
+
+| Piece | Values |
+|---|---|
+| trained on / scored on | country + number of tiles: `fr100`, `fr300`, `fr1000`, `sw100`, `sw300`, `sw1000`, `fi300`, `br300`. Several countries are written out: `fr300fi300`. `fr100v1` = the first France set, deleted in September. |
+| model | `cnn`, `pw` (pointwise), `ridge`. `cnnraw` / `pwraw` = early models trained without rescaled inputs. |
+| seed | nothing = the first run. `s1`, `s2` = repeat runs (the number typed as `--init_seed`). `ens3` = three models averaged. `rerun` = a repeat of the same run. |
+| pile | `test` or `all` (see the `split` column above). |
+
+**New evaluations must be given a name in this pattern**, e.g.
+`python -m src.evaluate ... --name fr1000_pw_on_fi300_all`.
+
+All folders were renamed to this pattern on 2026-11-12. The old names are in
+`renamed_2026-11-12.csv` and in each `metrics.json` (`old_name`).
+
 ## Reading the cells
 
 - **Empty cell** = it was never written down. Nothing is guessed.

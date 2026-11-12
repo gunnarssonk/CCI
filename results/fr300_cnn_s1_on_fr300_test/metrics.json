@@ -1,0 +1,39 @@
+{
+  "name": "fr300_cnn_s1_on_fr300_test",
+  "old_name": "jasmin_france_s1",
+  "evaluated": "2026-10-21T10:28:34",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/jasmin_france/cnn_s1_1020_1539/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j",
+    "split": "test",
+    "name": "jasmin_france_s1",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 2949120,
+    "rmse": 23.95606231689453,
+    "mae": 13.790459632873535,
+    "bias": -0.6146207451820374,
+    "r2": 0.8527485921543021,
+    "true_mean": 40.771392822265625,
+    "true_std": 62.42890167236328,
+    "pred_mean": 40.15677261352539,
+    "tile_rmse_mean": 22.999028587341307,
+    "tile_rmse_std": 6.70354720788785,
+    "n_tiles": 45,
+    "cci_sd_mean": 19.48107147216797,
+    "cci_sd_rms": 35.024574279785156,
+    "frac_sd_gt0": 0.5305402967664931,
+    "rmse_over_cci_sd": 0.6839786767959595,
+    "frac_within_1sd": 0.6870826081871271,
+    "frac_within_2sd": 0.8765731385179982
+  }
+}

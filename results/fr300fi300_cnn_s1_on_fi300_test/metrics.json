@@ -1,0 +1,39 @@
+{
+  "name": "fr300fi300_cnn_s1_on_fi300_test",
+  "old_name": "frfi_s1_on_finland_test",
+  "evaluated": "2026-11-11T09:10:19",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/jasmin_fr_fi/cnn_s1_1022_1107/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_finland_2020_j",
+    "split": "test",
+    "name": "frfi_s1_on_finland_test",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "metrics": {
+    "n_pixels": 2949120,
+    "rmse": 16.966157913208008,
+    "mae": 11.556753158569336,
+    "bias": 0.26584896445274353,
+    "r2": 0.8800875773807824,
+    "true_mean": 63.43955612182617,
+    "true_std": 48.99496078491211,
+    "pred_mean": 63.70540237426758,
+    "tile_rmse_mean": 16.25578646130032,
+    "tile_rmse_std": 4.8579739103414825,
+    "n_tiles": 45,
+    "cci_sd_mean": 32.369239807128906,
+    "cci_sd_rms": 40.890045166015625,
+    "frac_sd_gt0": 0.793043687608507,
+    "rmse_over_cci_sd": 0.41492146253585815,
+    "frac_within_1sd": 0.8779500945150487,
+    "frac_within_2sd": 0.9513639797826303
+  }
+}
