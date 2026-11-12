@@ -1,5 +1,9 @@
 """CCI AGB targets read straight from the CEDA archive on JASMIN.
 
+Used by:      build_jasmin.py (the JASMIN dataset builder).
+Borrows from: targets_ect.py (general tile tools: tile_grid, bbox_of, ...).
+Was called targets_cci_archive.py until 2026-11-12.
+
 On JASMIN the whole Biomass CCI product sits on disk, so no toolbox / ODP / GEE
 request is needed for the target:
 
@@ -20,9 +24,9 @@ server-side and what targets_ect.regrid_to_tile does, so tiles are comparable.
 A box that straddles a 10-degree tile edge is composited from the 2-4 tiles it
 touches. Only numpy + rasterio; no xarray, no torch.
 
-    python -m src.dataset.targets_cci_archive --probe 46.5 2.3
-    python -m src.dataset.targets_cci_archive --backfill --data_dir <dir with targets/ + manifest.json> --n 10
-    python -m src.dataset.targets_cci_archive --compare  --data_dir <same dir>
+    python -m src.dataset.targets_jasmin --probe 46.5 2.3
+    python -m src.dataset.targets_jasmin --backfill --data_dir <dir with targets/ + manifest.json> --n 10
+    python -m src.dataset.targets_jasmin --compare  --data_dir <same dir>
 """
 import os, glob, json, time, argparse, hashlib
 

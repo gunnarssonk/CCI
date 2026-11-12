@@ -1,8 +1,9 @@
 """Target tiles from the ESA Climate Toolbox (CCI Open Data Portal) instead of
 Google Earth Engine.
 
-Standalone: nothing else in the project imports this module, and it never imports
-torch. It needs the `ect` environment (setup/default/ect_env.sh), because the
+Used by: build_ect.py (EctTarget) and targets_jasmin.py (the general tile tools
+tile_grid, bbox_of, NAME_RE, _tiles_of, cli_compare). So do not delete this file
+even if the toolbox itself is never used. It never imports torch. It needs the `ect` environment (setup/default/ect_env.sh), because the
 toolbox depends on GDAL which pip cannot install into .venv.
 
     mamba activate ect
