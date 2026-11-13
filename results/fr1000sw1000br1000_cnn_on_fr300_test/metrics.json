@@ -1,6 +1,6 @@
 {
   "name": "fr1000sw1000br1000_cnn_on_fr300_test",
-  "evaluated": "2026-11-13T11:57:09",
+  "evaluated": "2026-11-13T14:29:02",
   "config": {
     "model_name": "SmallCNN",
     "checkpoint": "checkpoints/jasmin_fr_sw_br1000/cnn_1112_1200/model.pth",
