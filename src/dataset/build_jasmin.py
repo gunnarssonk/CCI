@@ -10,6 +10,15 @@ build_gee.py, so train.py / evaluate.py work unchanged.
 Like the other builders it refuses to run into a folder that already has tiles
 unless --append true is given. One run per folder.
 
+New tiles never overlap each other (since 2026-11-13). To also keep them clear of
+tiles in other folders, list those folders with --avoid_dirs, e.g. for a clean
+test set:
+    python -m src.dataset.build_jasmin --country France --year 2020 --total_samples 150 \
+        --output_dir $D/data_france_2020_jtest150 \
+        --avoid_dirs $D/data_france_2020_j300,$D/data_france_2020_j700
+--allow_overlap true gives the old behaviour. The check lives in run_build() in
+build_ect.py.
+
 Borrows from: build_ect.py (the shared download loop run_build), build_gee.py
 (refuse_unless_append) and targets_jasmin.py (reads the biomass from disk).
 All of those files are needed for a JASMIN build.
@@ -39,6 +48,8 @@ class Config:
     version: str = DEFAULT_VERSION  # v6.0 matches the GEE copy; v7.0 is the newest
     fill_value: float = 0.0
     append: bool = False            # add tiles to a folder that already has some
+    avoid_dirs: str = None          # other dataset folders (comma-separated) whose tiles the new ones must not overlap
+    allow_overlap: bool = False     # true = old behaviour, tiles may share ground with each other
 
     def __post_init__(self):
         if not self.output_dir:

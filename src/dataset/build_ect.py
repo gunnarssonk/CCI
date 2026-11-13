@@ -16,6 +16,15 @@ Runs in the `ect` environment (setup/default/ect_env.sh):
 The GEE-only builder (build_gee.py) is untouched; this reuses its point sampling,
 geometry and embedding download by import.
 
+New tiles never share ground with a tile that already exists (since 2026-11-13):
+the ones made earlier in the same run, the ones already in --output_dir, and the
+ones in any folder listed in --avoid_dirs. See run_build(). build_gee.py's own
+loop does not have this check.
+
+    python -m src.dataset.build_jasmin ... --output_dir $D/data_france_2020_jtest150 \
+        --avoid_dirs $D/data_france_2020_j300,$D/data_france_2020_j700
+    python -m src.dataset.build_jasmin ... --allow_overlap true     # the old behaviour
+
 Used by:      build_jasmin.py borrows run_build() and args_for() from this file,
               so do not delete it even if the toolbox itself is never used.
 Borrows from: build_gee.py (sampling, AlphaEarth download) and targets_ect.py.
@@ -28,7 +37,11 @@ import numpy as np
 from tqdm import tqdm
 
 from src.dataset.build_gee import build_geom, fetch_alphaearth, sample_point_in_zone, write_manifest, str2bool, refuse_unless_append
-from src.dataset.targets_ect import EctTarget, DEFAULT_DATA_ID, DEFAULT_STORE
+from src.dataset.targets_ect import EctTarget, DEFAULT_DATA_ID, DEFAULT_STORE, NAME_RE
+
+# Give up when this many random locations in a row all overlap an existing tile:
+# by then less than about 1 % of the country is still free.
+MAX_SKIPS_IN_A_ROW = 500
 
 
 @dataclass
@@ -49,6 +62,8 @@ class Config:
     method: str = "nearest"         # regridding: nearest | linear
     fill_value: float = 0.0         # written where the source has no data
     append: bool = False            # add tiles to a folder that already has some
+    avoid_dirs: str = None          # other dataset folders (comma-separated) whose tiles the new ones must not overlap
+    allow_overlap: bool = False     # true = old behaviour, tiles may share ground with each other
 
     def __post_init__(self):
         if not self.output_dir:
@@ -74,9 +89,36 @@ def args_extract(parser):
     return args_for(Config, parser)
 
 
-def add_target_to_manifest(output_dir, target, last_meta):
+def existing_tile_centres(folders):
+    """(lat, lon) of the centre of every tile in these dataset folders, read from
+    the file names in ae_embeddings/ (lat+45.8388_lon-000.1570_00100_ae.npy)."""
+    centres = []
+    for folder in folders:
+        ae_dir = os.path.join(folder, "ae_embeddings")
+        if not os.path.isdir(ae_dir):
+            continue
+        for f in os.listdir(ae_dir):
+            m = NAME_RE.match(f)
+            if m and f.endswith("_ae.npy"):
+                centres.append((float(m.group(1)), float(m.group(2))))
+    return centres
+
+
+def overlaps_existing(lat, lon, centres, buffer_deg):
+    """True if a tile centred here would share ground with a tile in `centres`.
+
+    Every tile is a box reaching buffer_deg from its centre in each direction, so
+    two boxes overlap when their centres are less than 2 * buffer_deg apart in
+    BOTH latitude and longitude. Assumes the existing tiles were built with the
+    same buffer_deg (0.09 for every dataset so far)."""
+    sep = 2 * buffer_deg
+    return any(abs(lat - a) < sep and abs(lon - o) < sep for a, o in centres)
+
+
+def add_target_to_manifest(output_dir, target, last_meta, extra=None):
     """write_manifest() (from build_gee.py) hardcodes the GEE AGB collection; append the
-    real target provenance to the record it just wrote."""
+    real target provenance to the record it just wrote. `extra` is merged into the
+    same record (run_build uses it for the overlap settings)."""
     path = os.path.join(output_dir, "manifest.json")
     with open(path) as f:
         doc = json.load(f)
@@ -85,6 +127,7 @@ def add_target_to_manifest(output_dir, target, last_meta):
     rec["agb_collection"] = None    # not from GEE
     if last_meta:
         rec["target"]["regrid"] = {k: last_meta[k] for k in ("native_res_deg", "native_shape", "ratio_tile_to_native") if k in last_meta}
+    rec.update(extra or {})
     with open(path, "w") as f:
         json.dump(doc, f, indent=2)
 
@@ -95,16 +138,43 @@ def run_build(config, target):
     `target` is any object with
         fetch(bbox, year, dim) -> (y (dim,dim,1), sd (dim,dim,1) or None, meta) or None
         describe()             -> dict for the manifest
-    Earth Engine must already be initialised (point sampling + AlphaEarth)."""
+    Earth Engine must already be initialised (point sampling + AlphaEarth).
+
+    No overlap: a random location whose tile would share ground with a known tile
+    is skipped before anything is downloaded, and does not count as a try. Known
+    tiles = accepted earlier in this run + already in output_dir (--append) + in
+    --avoid_dirs. Before 2026-11-13 nothing was checked, so the older folders do
+    contain overlapping tiles (e.g. 26 of the 45 France j300 test tiles are
+    touched by a j700 train/val tile). --allow_overlap true switches the check off."""
     country_boundaries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
     country = country_boundaries.filter(ee.Filter.eq("country_na", config.country)).geometry()
 
-    accepted = tries = 0
+    avoid = [d.strip() for d in (config.avoid_dirs or "").split(",") if d.strip()]
+    if config.allow_overlap and avoid:
+        raise SystemExit("--avoid_dirs and --allow_overlap true contradict each other: give only one")
+    for d in avoid:
+        # Fail loudly: a mistyped path would otherwise avoid nothing, silently.
+        if not existing_tile_centres([d]):
+            raise SystemExit(f"--avoid_dirs: no tiles found in {d}/ae_embeddings — check the path")
+    centres = [] if config.allow_overlap else existing_tile_centres([config.output_dir] + avoid)
+    if centres:
+        print(f"Keeping clear of {len(centres)} existing tiles")
+
+    accepted = tries = skipped = skipped_in_a_row = 0
     coords, last_meta = [], None
     pbar = tqdm(total=config.total_samples, desc="Accepted samples", unit="sample")
     while accepted < config.total_samples and tries < config.max_tries:
-        tries += 1
         lat, lon = sample_point_in_zone(country)
+        if not config.allow_overlap and overlaps_existing(lat, lon, centres, config.buffer_deg):
+            skipped += 1; skipped_in_a_row += 1
+            print(f"⏭️  ({lat:.4f}, {lon:.4f}) overlaps an existing tile, skipped ({skipped} so far)")
+            if skipped_in_a_row >= MAX_SKIPS_IN_A_ROW:
+                print(f"\n⚠️ {MAX_SKIPS_IN_A_ROW} random locations in a row all overlapped an existing tile: "
+                      f"{config.country} has no room left for more tiles. Stopping at {accepted}.")
+                break
+            continue
+        skipped_in_a_row = 0
+        tries += 1
         geom, bbox = build_geom(lat, lon, config.buffer_deg)
         print(f"\n🌍 Try {tries} | Sampling ({lat:.4f}, {lon:.4f})")
         try:
@@ -122,8 +192,9 @@ def run_build(config, target):
             if sd is not None:
                 np.save(os.path.join(config.sd_dir, f"{name}_sd.npy"), sd)
             coords.append((lat, lon))
+            centres.append((lat, lon))      # later tiles in this run must stay clear of it too
             accepted += 1
-            pbar.update(1); pbar.set_postfix({"tries": tries, "acc_rate": f"{accepted / tries:.2f}"})
+            pbar.update(1); pbar.set_postfix({"tries": tries, "acc_rate": f"{accepted / tries:.2f}", "skipped": skipped})
             print(f"✅ Accepted sample {accepted}")
             time.sleep(1)
         except Exception as e:
@@ -131,8 +202,12 @@ def run_build(config, target):
 
     pbar.close()
     write_manifest(config, accepted, tries, coords)
-    add_target_to_manifest(config.output_dir, target, last_meta)
-    print(f"\nDone: {accepted} samples collected in {tries} tries")
+    add_target_to_manifest(config.output_dir, target, last_meta, extra={
+        "no_overlap": not config.allow_overlap,
+        "avoid_dirs": avoid,
+        "skipped_overlapping": skipped,
+    })
+    print(f"\nDone: {accepted} samples collected in {tries} tries ({skipped} locations skipped for overlap)")
     return accepted, tries
 
 
