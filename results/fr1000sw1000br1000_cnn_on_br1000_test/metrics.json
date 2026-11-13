@@ -1,0 +1,51 @@
+{
+  "name": "fr1000sw1000br1000_cnn_on_br1000_test",
+  "evaluated": "2026-11-13T11:59:07",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/jasmin_fr_sw_br1000/cnn_1112_1200/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_brazil_2020_j,/gws/ssde/j25a/esaclim/klara/data_gee/data_brazil_2020_j700",
+    "split": "test",
+    "name": "fr1000sw1000br1000_cnn_on_br1000_test",
+    "out_root": "results",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "batch_size": 8,
+    "ridge_alpha": 1.0,
+    "ridge_max_pixels": 500000,
+    "example_tiles": 3
+  },
+  "train": [
+    {
+      "checkpoint": "checkpoints/jasmin_fr_sw_br1000/cnn_1112_1200/model.pth",
+      "model_name": "SmallCNN",
+      "normalize": true,
+      "target_scale": 100.0,
+      "data_dir": "/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j300,/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j700,/gws/ssde/j25a/esaclim/klara/data_gee/data_sweden_2020_j,/gws/ssde/j25a/esaclim/klara/data_gee/data_sweden_2020_j700,/gws/ssde/j25a/esaclim/klara/data_gee/data_brazil_2020_j,/gws/ssde/j25a/esaclim/klara/data_gee/data_brazil_2020_j700",
+      "seed": 42,
+      "init_seed": null,
+      "split_train": 0.7,
+      "split_val": 0.15
+    }
+  ],
+  "metrics": {
+    "n_pixels": 9895936,
+    "rmse": 40.707725524902344,
+    "mae": 26.25276756286621,
+    "bias": 2.104027271270752,
+    "r2": 0.8951687135600213,
+    "true_mean": 122.93698120117188,
+    "true_std": 125.72782135009766,
+    "pred_mean": 125.04100036621094,
+    "tile_rmse_mean": 35.404465069044505,
+    "tile_rmse_std": 20.09086596698555,
+    "n_tiles": 151,
+    "cci_sd_mean": 58.39894104003906,
+    "cci_sd_rms": 86.00407409667969,
+    "frac_sd_gt0": 0.7342784957380484,
+    "rmse_over_cci_sd": 0.4733232259750366,
+    "frac_within_1sd": 0.7728349480545521,
+    "frac_within_2sd": 0.9213819604361075
+  }
+}
