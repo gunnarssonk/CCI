@@ -27,7 +27,7 @@ The table is rebuilt by `python -m src.collect_results`; do not edit it by hand.
 
 | Piece | Values |
 |---|---|
-| trained on / scored on | country + number of tiles: `fr100`, `fr300`, `fr1000`, `sw100`, `sw300`, `sw1000`, `fi300`, `br300`. Several countries are written out: `fr300fi300`. `fr100v1` = the first France set, deleted in September. |
+| trained on / scored on | country + number of tiles: `fr100`, `fr300`, `fr1000`, `sw100`, `sw300`, `sw1000`, `fi300`, `br300`, `br1000`. Several countries are written out: `fr300fi300`. `fr100v1` = the first France set, deleted in September. |
 | model | `cnn`, `pw` (pointwise), `ridge`. `cnnraw` / `pwraw` = early models trained without rescaled inputs. |
 | seed | nothing = the first run. `s1`, `s2` = repeat runs (the number typed as `--init_seed`). `ens3` = three models averaged. `rerun` = a repeat of the same run. |
 | pile | `test` or `all` (see the `split` column above). |
