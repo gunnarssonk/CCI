@@ -1,6 +1,6 @@
 {
   "name": "fr1000sw1000br1000_pw_on_sw1000_test",
-  "evaluated": "2026-11-13T12:01:15",
+  "evaluated": "2026-11-13T14:30:24",
   "config": {
     "model_name": "PointWiseModel",
     "checkpoint": "checkpoints/jasmin_fr_sw_br1000/pw_1112_1203/model.pth",
