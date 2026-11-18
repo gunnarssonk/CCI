@@ -1,0 +1,147 @@
+{
+  "box": "netherlands",
+  "block": "r2_c3",
+  "bounds_west_south_east_north": [
+    5.6,
+    51.90044444444444,
+    5.8,
+    52.10044444444444
+  ],
+  "cci_pixel_m": [
+    98.90428773009614,
+    61.04649717166408
+  ],
+  "ee_images": [
+    "x14lnc25ileq2cwt4"
+  ],
+  "native_crs": "EPSG:32631",
+  "native_pixel_m": 10,
+  "native_transform": [
+    10,
+    0,
+    663840,
+    0,
+    10,
+    5734400
+  ],
+  "native_stored_bottom_up": true,
+  "method": "mean of the 10 m AlphaEarth embeddings inside each CCI pixel, weighted by the share of the CCI pixel each 10 m pixel covers (ee.Image.reduceResolution, ee.Reducer.mean, maxPixels=1024, input in its native UTM 10 m grid), computed directly on the CCI grid (EPSG:4326, 1/1125 degree); not rescaled to length 1",
+  "seconds": {
+    "averaged_block": 22.4473876953125,
+    "single_spot_block": 6.404463291168213,
+    "10m_patch": 9.052966594696045
+  },
+  "megabytes": {
+    "averaged_block": 12.152505,
+    "10m_patch": 8.932958
+  },
+  "check_1_grid": {
+    "pass": true,
+    "largest_difference_deg": 0.0,
+    "delivered_transform": [
+      0.0008888888888888889,
+      0.0,
+      5.6,
+      0.0,
+      -0.0008888888888888889,
+      52.10044444444444
+    ],
+    "cci_transform": [
+      0.0008888888888888889,
+      0.0,
+      5.6,
+      0.0,
+      -0.0008888888888888889,
+      52.10044444444444
+    ],
+    "delivered_shape": [
+      225,
+      225
+    ],
+    "delivered_crs": "EPSG:4326"
+  },
+  "check_2_length": {
+    "pass": true,
+    "block_averaged": {
+      "mean": 0.9733811718109602,
+      "p01": 0.909207861461961,
+      "p50": 0.9773775608338472,
+      "max": 1.0001330763844214,
+      "share_below_0.95": 0.12746666666666667
+    },
+    "block_single_spot": {
+      "mean": 1.0000915870254137,
+      "min": 0.9917726041573028,
+      "max": 1.0078567868754453
+    },
+    "patch": {
+      "length_ee_mean": 0.9738180384461051,
+      "length_own_mean": 0.9738286517134048,
+      "length_mean_abs_diff": 6.334811268463323e-05,
+      "length_10m_min": 0.9914033706902587,
+      "length_10m_max": 1.008356370714806
+    }
+  },
+  "check_3_average": {
+    "pass": true,
+    "patch_rows_cols": [
+      40,
+      65,
+      40
+    ],
+    "patch_biomass_mean": 80.1606216430664,
+    "patch_share_50_or_more": 0.548125,
+    "rms_ee_vs_own": 0.00010413296264089256,
+    "rms_spot_vs_own": 0.02100967889713905,
+    "rms_ee_vs_spot": 0.021011611551704237,
+    "rms_ee_single_spot_request_vs_own": 0.017168312413618603,
+    "typical_band_value": 0.12174488904340025,
+    "points_per_cci_pixel_min": 1502.0,
+    "points_per_cci_pixel_median": 1508.0
+  },
+  "missing": {
+    "cci_pixels_with_no_10m_data": 0,
+    "cci_pixels_partly_missing": 0,
+    "cci_pixels_total": 50625
+  },
+  "shift_test": {
+    "best_shift_south_east": [
+      0,
+      0
+    ],
+    "r2_no_shift": 0.7561933398246765,
+    "r2_by_shift": {
+      "-2,-2": 0.5472092628479004,
+      "-2,-1": 0.5684813261032104,
+      "-2,+0": 0.5810230374336243,
+      "-2,+1": 0.5766986608505249,
+      "-2,+2": 0.5561044812202454,
+      "-1,-2": 0.6215985417366028,
+      "-1,-1": 0.666610598564148,
+      "-1,+0": 0.689751386642456,
+      "-1,+1": 0.6752580404281616,
+      "-1,+2": 0.6333131790161133,
+      "+0,-2": 0.6723707914352417,
+      "+0,-1": 0.7305891513824463,
+      "+0,+0": 0.7561933398246765,
+      "+0,+1": 0.7355985045433044,
+      "+0,+2": 0.6774283647537231,
+      "+1,-2": 0.652381420135498,
+      "+1,-1": 0.6983127593994141,
+      "+1,+0": 0.7184919118881226,
+      "+1,+1": 0.6983663439750671,
+      "+1,+2": 0.6500372290611267,
+      "+2,-2": 0.5803936719894409,
+      "+2,-1": 0.6044902801513672,
+      "+2,+0": 0.6146308779716492,
+      "+2,+1": 0.6049106121063232,
+      "+2,+2": 0.5786516666412354
+    }
+  },
+  "averaged_against_single_spot": {
+    "ridge_r2_averaged": 0.7562555074691772,
+    "ridge_r2_single_spot": 0.743349552154541,
+    "note": "ridge fitted and scored on the same pixels of this one block; a quick indication, not a model result"
+  },
+  "all_three_checks_pass": true
+}
