@@ -1,0 +1,62 @@
+{
+  "command": "python -m src.v7.experiments evaluate --setup nocs --model pw",
+  "working_dir": "/home/users/kldgunn/CCI",
+  "started": "2026-11-19T10:23:48",
+  "host": "host1134.jc.rl.ac.uk",
+  "slurm_job_id": "3948061",
+  "git_commit": "aef42e8",
+  "code_differs_from_git_commit": false,
+  "code_sha256": {
+    "src/v7/__init__.py": "e3b0c44298fc1c14",
+    "src/v7/alike_distance.py": "f493dd1ed3153077",
+    "src/v7/build_blocks.py": "6c9e4cd39dd311db",
+    "src/v7/common.py": "e3889c48a14af02e",
+    "src/v7/crop_cci.py": "b1d6c6d57af9c5ec",
+    "src/v7/ee_embeddings.py": "6f47863144623f5e",
+    "src/v7/evaluate.py": "2e4e1c11786b47d7",
+    "src/v7/experiments.py": "f22cb9a1f40fd987",
+    "src/v7/make_split.py": "6a9a3587917dd76a",
+    "src/v7/one_block_test.py": "01a206f463232c50",
+    "src/v7/train.py": "80bef8c067b92849",
+    "src/train.py": "cc9a4c78301184f0",
+    "src/evaluate.py": "0af16b9e3b7b4c69",
+    "src/model/model.py": "8cfa7d0f789e4908",
+    "src/dataset/dataset.py": "9dcb21985a891108"
+  },
+  "python": "3.11.17",
+  "settings": {
+    "name": "nocs_pw_on_cs_test",
+    "model_name": "PointWiseModel",
+    "checkpoint": "checkpoints/v7/nocs/pw_1119_0949/model.pth",
+    "pile": "test",
+    "out_root": "results/v7",
+    "train_boxes": "central_sweden,northern_sweden,netherlands,southwest_sweden,amapa_brazil,east_para_brazil",
+    "score_boxes": "central_sweden",
+    "trained_on_boxes": [
+      "northern_sweden",
+      "netherlands",
+      "southwest_sweden",
+      "amapa_brazil",
+      "east_para_brazil"
+    ],
+    "device": "cpu"
+  },
+  "results": {
+    "overall": {
+      "n_pixels": 253125,
+      "rmse": 23.260242462158203,
+      "mae": 17.73992347717285,
+      "bias": -5.430104732513428,
+      "r2": 0.7544623831979991,
+      "true_mean": 91.09944915771484,
+      "true_std": 46.94131088256836,
+      "pred_mean": 85.66934204101562,
+      "cci_sd_mean": 56.13215637207031,
+      "cci_sd_rms": 63.35606384277344,
+      "frac_sd_gt0": 0.9179298765432099,
+      "rmse_over_cci_sd": 0.367135226726532,
+      "frac_within_1sd": 0.9137511781744,
+      "frac_within_2sd": 0.96228550770171
+    }
+  }
+}
