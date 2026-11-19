@@ -1,0 +1,34 @@
+job,kind,experiment,setup,model,waits_for,command
+4163834,train,A,all6,cnn_s1,,sbatch --parsable --job-name=v7t_all6_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup all6 --model cnn --rep 1
+4163835,evaluate,A,all6,cnn_s1,4163834,sbatch --parsable --time=02:00:00 --job-name=v7e_all6_cnn_s1 --dependency=afterok:4163834 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup all6 --model cnn --rep 1
+4163836,train,A,all6,pw_s1,,sbatch --parsable --job-name=v7t_all6_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup all6 --model pw --rep 1
+4163837,evaluate,A,all6,pw_s1,4163836,sbatch --parsable --time=02:00:00 --job-name=v7e_all6_pw_s1 --dependency=afterok:4163836 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup all6 --model pw --rep 1
+4163838,train,A,all6,cnn_s2,,sbatch --parsable --job-name=v7t_all6_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup all6 --model cnn --rep 2
+4163839,evaluate,A,all6,cnn_s2,4163838,sbatch --parsable --time=02:00:00 --job-name=v7e_all6_cnn_s2 --dependency=afterok:4163838 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup all6 --model cnn --rep 2
+4163840,train,A,all6,pw_s2,,sbatch --parsable --job-name=v7t_all6_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup all6 --model pw --rep 2
+4163841,evaluate,A,all6,pw_s2,4163840,sbatch --parsable --time=02:00:00 --job-name=v7e_all6_pw_s2 --dependency=afterok:4163840 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup all6 --model pw --rep 2
+4163842,train,B,noboreal,cnn_s1,,sbatch --parsable --job-name=v7t_noboreal_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noboreal --model cnn --rep 1
+4163843,evaluate,B,noboreal,cnn_s1,4163842,sbatch --parsable --time=02:00:00 --job-name=v7e_noboreal_cnn_s1 --dependency=afterok:4163842 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noboreal --model cnn --rep 1
+4163844,train,B,noboreal,pw_s1,,sbatch --parsable --job-name=v7t_noboreal_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noboreal --model pw --rep 1
+4163845,evaluate,B,noboreal,pw_s1,4163844,sbatch --parsable --time=02:00:00 --job-name=v7e_noboreal_pw_s1 --dependency=afterok:4163844 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noboreal --model pw --rep 1
+4163846,train,B,noboreal,cnn_s2,,sbatch --parsable --job-name=v7t_noboreal_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noboreal --model cnn --rep 2
+4163847,evaluate,B,noboreal,cnn_s2,4163846,sbatch --parsable --time=02:00:00 --job-name=v7e_noboreal_cnn_s2 --dependency=afterok:4163846 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noboreal --model cnn --rep 2
+4163848,train,B,noboreal,pw_s2,,sbatch --parsable --job-name=v7t_noboreal_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noboreal --model pw --rep 2
+4163849,evaluate,B,noboreal,pw_s2,4163848,sbatch --parsable --time=02:00:00 --job-name=v7e_noboreal_pw_s2 --dependency=afterok:4163848 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noboreal --model pw --rep 2
+4163850,train,B,notemperate,cnn_s1,,sbatch --parsable --job-name=v7t_notemperate_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notemperate --model cnn --rep 1
+4163851,evaluate,B,notemperate,cnn_s1,4163850,sbatch --parsable --time=02:00:00 --job-name=v7e_notemperate_cnn_s1 --dependency=afterok:4163850 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notemperate --model cnn --rep 1
+4163852,train,B,notemperate,pw_s1,,sbatch --parsable --job-name=v7t_notemperate_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notemperate --model pw --rep 1
+4163853,evaluate,B,notemperate,pw_s1,4163852,sbatch --parsable --time=02:00:00 --job-name=v7e_notemperate_pw_s1 --dependency=afterok:4163852 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notemperate --model pw --rep 1
+4163854,train,B,notemperate,cnn_s2,,sbatch --parsable --job-name=v7t_notemperate_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notemperate --model cnn --rep 2
+4163855,evaluate,B,notemperate,cnn_s2,4163854,sbatch --parsable --time=02:00:00 --job-name=v7e_notemperate_cnn_s2 --dependency=afterok:4163854 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notemperate --model cnn --rep 2
+4163856,train,B,notemperate,pw_s2,,sbatch --parsable --job-name=v7t_notemperate_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notemperate --model pw --rep 2
+4163857,evaluate,B,notemperate,pw_s2,4163856,sbatch --parsable --time=02:00:00 --job-name=v7e_notemperate_pw_s2 --dependency=afterok:4163856 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notemperate --model pw --rep 2
+4163858,train,B,notropical,cnn_s1,,sbatch --parsable --job-name=v7t_notropical_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notropical --model cnn --rep 1
+4163859,evaluate,B,notropical,cnn_s1,4163858,sbatch --parsable --time=02:00:00 --job-name=v7e_notropical_cnn_s1 --dependency=afterok:4163858 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notropical --model cnn --rep 1
+4163860,train,B,notropical,pw_s1,,sbatch --parsable --job-name=v7t_notropical_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notropical --model pw --rep 1
+4163861,evaluate,B,notropical,pw_s1,4163860,sbatch --parsable --time=02:00:00 --job-name=v7e_notropical_pw_s1 --dependency=afterok:4163860 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notropical --model pw --rep 1
+4163862,train,B,notropical,cnn_s2,,sbatch --parsable --job-name=v7t_notropical_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notropical --model cnn --rep 2
+4163863,evaluate,B,notropical,cnn_s2,4163862,sbatch --parsable --time=02:00:00 --job-name=v7e_notropical_cnn_s2 --dependency=afterok:4163862 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notropical --model cnn --rep 2
+4163864,train,B,notropical,pw_s2,,sbatch --parsable --job-name=v7t_notropical_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup notropical --model pw --rep 2
+4163865,evaluate,B,notropical,pw_s2,4163864,sbatch --parsable --time=02:00:00 --job-name=v7e_notropical_pw_s2 --dependency=afterok:4163864 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup notropical --model pw --rep 2
+4163866,collect,,,,all scoring jobs,sbatch --parsable --time=00:30:00 --job-name=v7_collect --dependency=afterany:4163835:4163837:4163839:4163841:4163843:4163845:4163847:4163849:4163851:4163853:4163855:4163857:4163859:4163861:4163863:4163865 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments collect
