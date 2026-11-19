@@ -14,7 +14,7 @@
 #SBATCH --partition=standard
 #SBATCH --account=esaclim
 #SBATCH --qos=standard
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
 #SBATCH --time=02:00:00
 #SBATCH --output=logs/v7/slurm-%j.out

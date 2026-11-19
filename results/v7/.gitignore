@@ -1,0 +1,3 @@
+# The predicted-biomass maps (pred_<box>.tif, about 2-5 MB each, several hundred MB in all) stay on JASMIN.
+# Everything else in results/v7/ (tables, numbers, small figures) is tracked.
+*/pred_*.tif

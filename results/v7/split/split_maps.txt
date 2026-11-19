@@ -1,0 +1,36 @@
+central_sweden  (north at the top; . = train, v = val, T = test)
+    . T v . T
+    . . . T .
+    . . . T v
+    . . . . .
+    . . T v .
+northern_sweden  (north at the top; . = train, v = val, T = test)
+    . T v . T
+    . . . T .
+    . . . T v
+    . . . . .
+    . . T v .
+netherlands  (north at the top; . = train, v = val, T = test)
+    . T v . T
+    . . . T .
+    . . . T v
+    . . . . .
+    . . T v .
+southwest_sweden  (north at the top; . = train, v = val, T = test)
+    . T v . T
+    . . . T .
+    . . . T v
+    . . . . .
+    . . T v .
+amapa_brazil  (north at the top; . = train, v = val, T = test)
+    . T v . T
+    . . . T .
+    . . . T v
+    . . . . .
+    . . T v .
+east_para_brazil  (north at the top; . = train, v = val, T = test)
+    . T v . T
+    . . . T .
+    . . . T v
+    . . . . .
+    . . T v .

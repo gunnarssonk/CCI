@@ -1,0 +1,190 @@
+{
+  "command": "python -m src.v7.make_split",
+  "working_dir": "/home/users/kldgunn/CCI",
+  "started": "2026-11-18T16:44:16",
+  "host": "host1002.jc.rl.ac.uk",
+  "slurm_job_id": "3150996",
+  "git_commit": "578af13",
+  "code_differs_from_git_commit": true,
+  "python": "3.11.17",
+  "settings": {
+    "seed": 42,
+    "ratio": [
+      0.7,
+      0.15,
+      0.15000000000000005
+    ],
+    "block_pixels": 225
+  },
+  "results": {
+    "blocks": {
+      "train": 102,
+      "val": 18,
+      "test": 30
+    },
+    "summary": [
+      {
+        "box": "central_sweden",
+        "split": "train",
+        "blocks": 17,
+        "pixels": 860625,
+        "agb_mean": 73.6,
+        "agb_pct_zero": 16.7,
+        "agb_pct_150_up": 1.8
+      },
+      {
+        "box": "central_sweden",
+        "split": "val",
+        "blocks": 3,
+        "pixels": 151875,
+        "agb_mean": 87.2,
+        "agb_pct_zero": 12.2,
+        "agb_pct_150_up": 4.3
+      },
+      {
+        "box": "central_sweden",
+        "split": "test",
+        "blocks": 5,
+        "pixels": 253125,
+        "agb_mean": 91.1,
+        "agb_pct_zero": 7.9,
+        "agb_pct_150_up": 2.8
+      },
+      {
+        "box": "northern_sweden",
+        "split": "train",
+        "blocks": 17,
+        "pixels": 860625,
+        "agb_mean": 68.6,
+        "agb_pct_zero": 7.6,
+        "agb_pct_150_up": 0.1
+      },
+      {
+        "box": "northern_sweden",
+        "split": "val",
+        "blocks": 3,
+        "pixels": 151875,
+        "agb_mean": 67.9,
+        "agb_pct_zero": 6.2,
+        "agb_pct_150_up": 0.9
+      },
+      {
+        "box": "northern_sweden",
+        "split": "test",
+        "blocks": 5,
+        "pixels": 253125,
+        "agb_mean": 68.2,
+        "agb_pct_zero": 7.0,
+        "agb_pct_150_up": 0.1
+      },
+      {
+        "box": "netherlands",
+        "split": "train",
+        "blocks": 17,
+        "pixels": 860625,
+        "agb_mean": 29.6,
+        "agb_pct_zero": 52.0,
+        "agb_pct_150_up": 5.9
+      },
+      {
+        "box": "netherlands",
+        "split": "val",
+        "blocks": 3,
+        "pixels": 151875,
+        "agb_mean": 33.1,
+        "agb_pct_zero": 44.1,
+        "agb_pct_150_up": 5.0
+      },
+      {
+        "box": "netherlands",
+        "split": "test",
+        "blocks": 5,
+        "pixels": 253125,
+        "agb_mean": 42.0,
+        "agb_pct_zero": 40.5,
+        "agb_pct_150_up": 9.1
+      },
+      {
+        "box": "southwest_sweden",
+        "split": "train",
+        "blocks": 17,
+        "pixels": 860625,
+        "agb_mean": 82.0,
+        "agb_pct_zero": 11.9,
+        "agb_pct_150_up": 14.1
+      },
+      {
+        "box": "southwest_sweden",
+        "split": "val",
+        "blocks": 3,
+        "pixels": 151875,
+        "agb_mean": 81.2,
+        "agb_pct_zero": 10.4,
+        "agb_pct_150_up": 13.5
+      },
+      {
+        "box": "southwest_sweden",
+        "split": "test",
+        "blocks": 5,
+        "pixels": 253125,
+        "agb_mean": 82.5,
+        "agb_pct_zero": 11.9,
+        "agb_pct_150_up": 16.2
+      },
+      {
+        "box": "amapa_brazil",
+        "split": "train",
+        "blocks": 17,
+        "pixels": 860625,
+        "agb_mean": 355.0,
+        "agb_pct_zero": 1.4,
+        "agb_pct_150_up": 94.4
+      },
+      {
+        "box": "amapa_brazil",
+        "split": "val",
+        "blocks": 3,
+        "pixels": 151875,
+        "agb_mean": 361.5,
+        "agb_pct_zero": 0.3,
+        "agb_pct_150_up": 97.1
+      },
+      {
+        "box": "amapa_brazil",
+        "split": "test",
+        "blocks": 5,
+        "pixels": 253125,
+        "agb_mean": 379.6,
+        "agb_pct_zero": 0.1,
+        "agb_pct_150_up": 99.0
+      },
+      {
+        "box": "east_para_brazil",
+        "split": "train",
+        "blocks": 17,
+        "pixels": 860625,
+        "agb_mean": 185.6,
+        "agb_pct_zero": 15.9,
+        "agb_pct_150_up": 67.6
+      },
+      {
+        "box": "east_para_brazil",
+        "split": "val",
+        "blocks": 3,
+        "pixels": 151875,
+        "agb_mean": 224.2,
+        "agb_pct_zero": 5.5,
+        "agb_pct_150_up": 83.1
+      },
+      {
+        "box": "east_para_brazil",
+        "split": "test",
+        "blocks": 5,
+        "pixels": 253125,
+        "agb_mean": 208.7,
+        "agb_pct_zero": 9.0,
+        "agb_pct_150_up": 75.9
+      }
+    ]
+  }
+}

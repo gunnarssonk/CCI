@@ -91,6 +91,19 @@ def pixel_size_m(lat_deg):
     return m_per_deg_lat / PIX_PER_DEG, m_per_deg_lon / PIX_PER_DEG
 
 
+def code_fingerprint():
+    """A short fingerprint (sha256) of every code file a v7 run can use. Two runs with the same
+    fingerprints used exactly the same code, whether or not it was committed at the time."""
+    import glob, hashlib
+    files = sorted(glob.glob("src/v7/*.py")) + ["src/train.py", "src/evaluate.py", "src/model/model.py", "src/dataset/dataset.py"]
+    out = {}
+    for f in files:
+        if os.path.exists(f):
+            with open(f, "rb") as fh:
+                out[f] = hashlib.sha256(fh.read()).hexdigest()[:16]
+    return out
+
+
 def write_run_record(out_dir, name, settings=None, results=None):
     """Save the exact command, all settings and where/when it ran, next to the output.
     One file per run (the Slurm job number or the time is in the name), so nothing is overwritten."""
@@ -111,6 +124,7 @@ def write_run_record(out_dir, name, settings=None, results=None):
         "slurm_job_id": job,
         "git_commit": commit,
         "code_differs_from_git_commit": dirty,
+        "code_sha256": code_fingerprint(),
         "python": sys.version.split()[0],
         "settings": settings or {},
         "results": results or {},

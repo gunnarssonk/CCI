@@ -1,0 +1,63 @@
+{
+  "command": "python -m src.v7.experiments evaluate --setup all6 --model cnn",
+  "working_dir": "/home/users/kldgunn/CCI",
+  "started": "2026-11-19T09:22:16",
+  "host": "host1268.jc.rl.ac.uk",
+  "slurm_job_id": "3948039",
+  "git_commit": "578af13",
+  "code_differs_from_git_commit": true,
+  "code_sha256": {
+    "src/v7/__init__.py": "e3b0c44298fc1c14",
+    "src/v7/alike_distance.py": "f493dd1ed3153077",
+    "src/v7/build_blocks.py": "6c9e4cd39dd311db",
+    "src/v7/common.py": "e3889c48a14af02e",
+    "src/v7/crop_cci.py": "b1d6c6d57af9c5ec",
+    "src/v7/ee_embeddings.py": "6f47863144623f5e",
+    "src/v7/evaluate.py": "2e4e1c11786b47d7",
+    "src/v7/experiments.py": "f22cb9a1f40fd987",
+    "src/v7/make_split.py": "6a9a3587917dd76a",
+    "src/v7/one_block_test.py": "01a206f463232c50",
+    "src/v7/train.py": "80bef8c067b92849",
+    "src/train.py": "cc9a4c78301184f0",
+    "src/evaluate.py": "0af16b9e3b7b4c69",
+    "src/model/model.py": "8cfa7d0f789e4908",
+    "src/dataset/dataset.py": "9dcb21985a891108"
+  },
+  "python": "3.11.17",
+  "settings": {
+    "name": "all6_cnn_on_all6_test",
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/v7/all6/cnn_1119_0908/model.pth",
+    "pile": "test",
+    "out_root": "results/v7",
+    "train_boxes": "central_sweden,northern_sweden,netherlands,southwest_sweden,amapa_brazil,east_para_brazil",
+    "score_boxes": "central_sweden,northern_sweden,netherlands,southwest_sweden,amapa_brazil,east_para_brazil",
+    "trained_on_boxes": [
+      "central_sweden",
+      "northern_sweden",
+      "netherlands",
+      "southwest_sweden",
+      "amapa_brazil",
+      "east_para_brazil"
+    ],
+    "device": "cpu"
+  },
+  "results": {
+    "overall": {
+      "n_pixels": 1518750,
+      "rmse": 46.56742477416992,
+      "mae": 29.788570404052734,
+      "bias": -2.4238686561584473,
+      "r2": 0.8859883571386844,
+      "true_mean": 145.36138916015625,
+      "true_std": 137.9137725830078,
+      "pred_mean": 142.93753051757812,
+      "cci_sd_mean": 81.08323669433594,
+      "cci_sd_rms": 115.50032043457031,
+      "frac_sd_gt0": 0.8652444444444445,
+      "rmse_over_cci_sd": 0.4031800627708435,
+      "frac_within_1sd": 0.867288389684116,
+      "frac_within_2sd": 0.9469282925826998
+    }
+  }
+}

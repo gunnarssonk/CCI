@@ -1,0 +1,180 @@
+{
+  "written": "2026-11-18T17:48:31",
+  "input": {
+    "dataset": "GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL",
+    "source": "Google Earth Engine",
+    "year": 2020,
+    "bands": "A00..A63 (64 numbers per pixel, no unit)",
+    "value_range_on_page": [
+      -1,
+      1
+    ],
+    "original_pixel_m": 10,
+    "original_grid": "local UTM zone (given per block in blocks_metadata.csv); stored bottom-up in Earth Engine",
+    "original_length": "every 10 m embedding has length 1",
+    "image_properties_example": {
+      "system:time_end": 1609459200000,
+      "system:index": "x4pya73qmbivpkwvw",
+      "system:time_start": 1577836800000,
+      "PROCESSING_SOFTWARE_VERSION": "1.01",
+      "UTM_ZONE": "33N",
+      "MODEL_VERSION": "2.1",
+      "DATASET_VERSION": "1.0"
+    },
+    "how_it_was_put_on_the_cci_grid": "mean of the 10 m AlphaEarth embeddings inside each CCI pixel, weighted by the share of the CCI pixel each 10 m pixel covers (ee.Image.reduceResolution, ee.Reducer.mean, maxPixels=1024, input in its native UTM 10 m grid), computed directly on the CCI grid (EPSG:4326, 1/1125 degree); not rescaled to length 1",
+    "stored_as": "float32, (225, 225, 64) per block; length below 1 where the ground inside a CCI pixel is mixed",
+    "missing": "a CCI pixel is left out when less than 0.999 of it had 10 m data; its 64 values are -3.4028235e+38; valid/<name>_valid.npy keeps the share that had data"
+  },
+  "target": {
+    "dataset": "ESA CCI Biomass v7.0, above-ground biomass (AGB) and its standard deviation (AGB_SD)",
+    "year": 2020,
+    "source": "CEDA archive on JASMIN, /neodc/esacci/biomass/data/agb/maps/v7.0/geotiff/2020",
+    "unit": "Mg/ha",
+    "grid": "EPSG:4326, pixel 1/1125 degree (about 99 m north-south; east-west 44-99 m depending on latitude)",
+    "missing": "no no-data value in the files; 0 is valid data (no biomass)",
+    "changes": "none: values are copied, the box is only cut out"
+  },
+  "boxes": {
+    "central_sweden": {
+      "box": "central_sweden",
+      "biome": "boreal",
+      "tile": "N70E010",
+      "lat_top": 70,
+      "lon_left": 10,
+      "row0": 9000,
+      "col0": 6750,
+      "requested": {
+        "south": 61.0,
+        "north": 62.0,
+        "west": 16.0,
+        "east": 17.0
+      },
+      "snapped": {
+        "south": 61.0,
+        "north": 62.0,
+        "west": 16.0,
+        "east": 17.0
+      },
+      "shift_north_pixels": 0.0,
+      "shift_east_pixels": 0.0
+    },
+    "northern_sweden": {
+      "box": "northern_sweden",
+      "biome": "boreal",
+      "tile": "N70E010",
+      "lat_top": 70,
+      "lon_left": 10,
+      "row0": 6750,
+      "col0": 6750,
+      "requested": {
+        "south": 63.0,
+        "north": 64.0,
+        "west": 16.0,
+        "east": 17.0
+      },
+      "snapped": {
+        "south": 63.0,
+        "north": 64.0,
+        "west": 16.0,
+        "east": 17.0
+      },
+      "shift_north_pixels": 0.0,
+      "shift_east_pixels": 0.0
+    },
+    "netherlands": {
+      "box": "netherlands",
+      "biome": "temperate",
+      "tile": "N60E000",
+      "lat_top": 60,
+      "lon_left": 0,
+      "row0": 8437,
+      "col0": 5625,
+      "requested": {
+        "south": 51.5,
+        "north": 52.5,
+        "west": 5.0,
+        "east": 6.0
+      },
+      "snapped": {
+        "south": 51.50044444444445,
+        "north": 52.50044444444445,
+        "west": 5.0,
+        "east": 6.0
+      },
+      "shift_north_pixels": 0.5,
+      "shift_east_pixels": 0.0
+    },
+    "southwest_sweden": {
+      "box": "southwest_sweden",
+      "biome": "temperate",
+      "tile": "N60E010",
+      "lat_top": 60,
+      "lon_left": 10,
+      "row0": 2250,
+      "col0": 2812,
+      "requested": {
+        "south": 57.0,
+        "north": 58.0,
+        "west": 12.5,
+        "east": 13.5
+      },
+      "snapped": {
+        "south": 57.0,
+        "north": 58.0,
+        "west": 12.499555555555556,
+        "east": 13.499555555555556
+      },
+      "shift_north_pixels": 0.0,
+      "shift_east_pixels": -0.5
+    },
+    "amapa_brazil": {
+      "box": "amapa_brazil",
+      "biome": "tropical moist",
+      "tile": "N10W060",
+      "lat_top": 10,
+      "lon_left": -60,
+      "row0": 9281,
+      "col0": 8719,
+      "requested": {
+        "south": 0.75,
+        "north": 1.75,
+        "west": -52.25,
+        "east": -51.25
+      },
+      "snapped": {
+        "south": 0.7502222222222222,
+        "north": 1.7502222222222221,
+        "west": -52.24977777777778,
+        "east": -51.24977777777778
+      },
+      "shift_north_pixels": 0.25,
+      "shift_east_pixels": 0.25
+    },
+    "east_para_brazil": {
+      "box": "east_para_brazil",
+      "biome": "tropical moist",
+      "tile": "N00W050",
+      "lat_top": 0,
+      "lon_left": -50,
+      "row0": 3375,
+      "col0": 1125,
+      "requested": {
+        "south": -4.0,
+        "north": -3.0,
+        "west": -49.0,
+        "east": -48.0
+      },
+      "snapped": {
+        "south": -4.0,
+        "north": -3.0,
+        "west": -49.0,
+        "east": -48.0
+      },
+      "shift_north_pixels": 0.0,
+      "shift_east_pixels": 0.0
+    }
+  },
+  "block_pixels": 225,
+  "blocks_per_box": 25,
+  "blocks_built": 150
+}

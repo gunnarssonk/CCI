@@ -1,0 +1,210 @@
+{
+  "seed": 42,
+  "ratio_train_val_test": [
+    0.7,
+    0.15,
+    0.15
+  ],
+  "unit": "block (225 x 225 CCI pixels)",
+  "rule": "per box: sorted block names, shuffled with numpy default_rng(seed), first 70 % train, next 15 % val, rest test",
+  "boxes": {
+    "central_sweden": {
+      "train": [
+        "central_sweden_r3_c0",
+        "central_sweden_r3_c1",
+        "central_sweden_r3_c4",
+        "central_sweden_r4_c0",
+        "central_sweden_r1_c4",
+        "central_sweden_r1_c2",
+        "central_sweden_r3_c2",
+        "central_sweden_r4_c4",
+        "central_sweden_r1_c1",
+        "central_sweden_r2_c0",
+        "central_sweden_r0_c3",
+        "central_sweden_r0_c0",
+        "central_sweden_r4_c1",
+        "central_sweden_r3_c3",
+        "central_sweden_r2_c2",
+        "central_sweden_r1_c0",
+        "central_sweden_r2_c1"
+      ],
+      "val": [
+        "central_sweden_r2_c4",
+        "central_sweden_r4_c3",
+        "central_sweden_r0_c2"
+      ],
+      "test": [
+        "central_sweden_r0_c4",
+        "central_sweden_r4_c2",
+        "central_sweden_r0_c1",
+        "central_sweden_r2_c3",
+        "central_sweden_r1_c3"
+      ]
+    },
+    "northern_sweden": {
+      "train": [
+        "northern_sweden_r3_c0",
+        "northern_sweden_r3_c1",
+        "northern_sweden_r3_c4",
+        "northern_sweden_r4_c0",
+        "northern_sweden_r1_c4",
+        "northern_sweden_r1_c2",
+        "northern_sweden_r3_c2",
+        "northern_sweden_r4_c4",
+        "northern_sweden_r1_c1",
+        "northern_sweden_r2_c0",
+        "northern_sweden_r0_c3",
+        "northern_sweden_r0_c0",
+        "northern_sweden_r4_c1",
+        "northern_sweden_r3_c3",
+        "northern_sweden_r2_c2",
+        "northern_sweden_r1_c0",
+        "northern_sweden_r2_c1"
+      ],
+      "val": [
+        "northern_sweden_r2_c4",
+        "northern_sweden_r4_c3",
+        "northern_sweden_r0_c2"
+      ],
+      "test": [
+        "northern_sweden_r0_c4",
+        "northern_sweden_r4_c2",
+        "northern_sweden_r0_c1",
+        "northern_sweden_r2_c3",
+        "northern_sweden_r1_c3"
+      ]
+    },
+    "netherlands": {
+      "train": [
+        "netherlands_r3_c0",
+        "netherlands_r3_c1",
+        "netherlands_r3_c4",
+        "netherlands_r4_c0",
+        "netherlands_r1_c4",
+        "netherlands_r1_c2",
+        "netherlands_r3_c2",
+        "netherlands_r4_c4",
+        "netherlands_r1_c1",
+        "netherlands_r2_c0",
+        "netherlands_r0_c3",
+        "netherlands_r0_c0",
+        "netherlands_r4_c1",
+        "netherlands_r3_c3",
+        "netherlands_r2_c2",
+        "netherlands_r1_c0",
+        "netherlands_r2_c1"
+      ],
+      "val": [
+        "netherlands_r2_c4",
+        "netherlands_r4_c3",
+        "netherlands_r0_c2"
+      ],
+      "test": [
+        "netherlands_r0_c4",
+        "netherlands_r4_c2",
+        "netherlands_r0_c1",
+        "netherlands_r2_c3",
+        "netherlands_r1_c3"
+      ]
+    },
+    "southwest_sweden": {
+      "train": [
+        "southwest_sweden_r3_c0",
+        "southwest_sweden_r3_c1",
+        "southwest_sweden_r3_c4",
+        "southwest_sweden_r4_c0",
+        "southwest_sweden_r1_c4",
+        "southwest_sweden_r1_c2",
+        "southwest_sweden_r3_c2",
+        "southwest_sweden_r4_c4",
+        "southwest_sweden_r1_c1",
+        "southwest_sweden_r2_c0",
+        "southwest_sweden_r0_c3",
+        "southwest_sweden_r0_c0",
+        "southwest_sweden_r4_c1",
+        "southwest_sweden_r3_c3",
+        "southwest_sweden_r2_c2",
+        "southwest_sweden_r1_c0",
+        "southwest_sweden_r2_c1"
+      ],
+      "val": [
+        "southwest_sweden_r2_c4",
+        "southwest_sweden_r4_c3",
+        "southwest_sweden_r0_c2"
+      ],
+      "test": [
+        "southwest_sweden_r0_c4",
+        "southwest_sweden_r4_c2",
+        "southwest_sweden_r0_c1",
+        "southwest_sweden_r2_c3",
+        "southwest_sweden_r1_c3"
+      ]
+    },
+    "amapa_brazil": {
+      "train": [
+        "amapa_brazil_r3_c0",
+        "amapa_brazil_r3_c1",
+        "amapa_brazil_r3_c4",
+        "amapa_brazil_r4_c0",
+        "amapa_brazil_r1_c4",
+        "amapa_brazil_r1_c2",
+        "amapa_brazil_r3_c2",
+        "amapa_brazil_r4_c4",
+        "amapa_brazil_r1_c1",
+        "amapa_brazil_r2_c0",
+        "amapa_brazil_r0_c3",
+        "amapa_brazil_r0_c0",
+        "amapa_brazil_r4_c1",
+        "amapa_brazil_r3_c3",
+        "amapa_brazil_r2_c2",
+        "amapa_brazil_r1_c0",
+        "amapa_brazil_r2_c1"
+      ],
+      "val": [
+        "amapa_brazil_r2_c4",
+        "amapa_brazil_r4_c3",
+        "amapa_brazil_r0_c2"
+      ],
+      "test": [
+        "amapa_brazil_r0_c4",
+        "amapa_brazil_r4_c2",
+        "amapa_brazil_r0_c1",
+        "amapa_brazil_r2_c3",
+        "amapa_brazil_r1_c3"
+      ]
+    },
+    "east_para_brazil": {
+      "train": [
+        "east_para_brazil_r3_c0",
+        "east_para_brazil_r3_c1",
+        "east_para_brazil_r3_c4",
+        "east_para_brazil_r4_c0",
+        "east_para_brazil_r1_c4",
+        "east_para_brazil_r1_c2",
+        "east_para_brazil_r3_c2",
+        "east_para_brazil_r4_c4",
+        "east_para_brazil_r1_c1",
+        "east_para_brazil_r2_c0",
+        "east_para_brazil_r0_c3",
+        "east_para_brazil_r0_c0",
+        "east_para_brazil_r4_c1",
+        "east_para_brazil_r3_c3",
+        "east_para_brazil_r2_c2",
+        "east_para_brazil_r1_c0",
+        "east_para_brazil_r2_c1"
+      ],
+      "val": [
+        "east_para_brazil_r2_c4",
+        "east_para_brazil_r4_c3",
+        "east_para_brazil_r0_c2"
+      ],
+      "test": [
+        "east_para_brazil_r0_c4",
+        "east_para_brazil_r4_c2",
+        "east_para_brazil_r0_c1",
+        "east_para_brazil_r2_c3",
+        "east_para_brazil_r1_c3"
+      ]
+    }
+  }
+}
