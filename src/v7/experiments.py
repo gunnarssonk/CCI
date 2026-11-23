@@ -7,6 +7,14 @@
     python -m src.v7.experiments baselines --setup all6                # constant mean, Ridge (and mean per box)
     python -m src.v7.experiments collect                               # one table of all v7 results
 
+Seed repeats (added 2026-11-19): the same run again with another starting seed. Repeat N is named
+<model>_sN (cnn_s1, pw_s2, ...) and uses seed N for the starting weights and the order of the batches.
+The first runs used seed 42. The block split stays the same (seed 42), and so do all settings.
+    python -m src.v7.experiments submit --only A,B --reps 1,2 --dry_run   # show what would be queued
+    python -m src.v7.experiments submit --only A,B --reps 1,2             # queue the repeats (no baselines:
+                                                                          # they do not depend on the seed)
+    python -m src.v7.experiments train --setup all6 --model cnn --rep 1   # one repeat (a GPU job does this)
+
 Experiments (agreed 2026-11-18), two models each (cnn = SmallCNN, pw = PointWiseModel):
   A  all6          train on all six boxes                      -> scored on the test blocks of all six
   B  no<biome>     leave one biome out, train on four boxes    -> scored on the two boxes of that biome
@@ -56,18 +64,25 @@ def newest_checkpoint(name, model):
     return os.path.join(found[-1], "model.pth")
 
 
-def do_train(name, model):
+def label(model, rep=None):
+    """cnn for the first run; cnn_s1 for repeat 1 (the same run with another starting seed)."""
+    return f"{model}_s{rep}" if rep else model
+
+
+def do_train(name, model, rep=None):
     from src.v7 import train as T7
-    T7.run(exp=name, run_name=model, model_name=MODELS[model], boxes=setups()[name]["train"])
+    # init_seed None = the first run (the training code then uses 42); repeat N starts from seed N
+    T7.run(exp=name, run_name=label(model, rep), model_name=MODELS[model], boxes=setups()[name]["train"], init_seed=rep or None)
 
 
-def do_evaluate(name, model, out_root):
+def do_evaluate(name, model, out_root, rep=None):
     from src.v7 import evaluate as E7
     setup = setups()[name]
-    ckpt = newest_checkpoint(name, model)
+    lab = label(model, rep)
+    ckpt = newest_checkpoint(name, lab)
     for code, boxes in setup["score"].items():
         for pile in piles_for(setup, boxes):
-            E7.run(f"{name}_{model}_on_{code}_{pile}", MODELS[model], checkpoint=ckpt, score_boxes=boxes, pile=pile, out_root=out_root)
+            E7.run(f"{name}_{lab}_on_{code}_{pile}", MODELS[model], checkpoint=ckpt, score_boxes=boxes, pile=pile, out_root=out_root)
 
 
 def do_baselines(name, out_root):
@@ -101,41 +116,66 @@ def do_collect(out_root):
     collect(out_root)
 
 
+DRY = {"on": False, "n": 0}        # submit --dry_run: print the sbatch commands, queue nothing
+
+
 def sbatch(script, module_args, dependency=None, extra=()):
     cmd = ["sbatch", "--parsable", *extra]
     if dependency:
         cmd.append(f"--dependency={dependency}")
     cmd += [script, *module_args]
+    if DRY["on"]:
+        DRY["n"] += 1
+        return f"dry{DRY['n']}", " ".join(cmd)
     out = subprocess.run(cmd, capture_output=True, text=True)
     if out.returncode != 0:
         raise SystemExit(f"sbatch failed: {' '.join(cmd)}\n{out.stderr}")
     return out.stdout.strip().split(";")[0], " ".join(cmd)
 
 
-def do_submit(after, only, out_root):
+def do_submit(after, only, out_root, reps=None, dry_run=False):
     """Queue everything. Training starts when the build job has ended well; each scoring job starts
-    when its training job has ended well; the table is collected when all scoring jobs have ended."""
+    when its training job has ended well; the table is collected when all scoring jobs have ended.
+    With reps (e.g. [1, 2]) only seed repeats are queued: no baselines, they do not depend on the seed."""
+    DRY["on"] = dry_run
     os.makedirs("logs/v7", exist_ok=True)
     first = f"afterok:{after}" if after else None
+    chosen = {name: s for name, s in setups().items() if not only or s["experiment"] in only}
+    if reps:
+        # nothing is overwritten: stop before queuing if a repeat with this name exists already
+        clash = [f"{name} {label(m, r)}" for name, s in chosen.items() for r in reps for m in MODELS
+                 if glob.glob(os.path.join("checkpoints", "v7", name, f"{label(m, r)}_*"))
+                 or glob.glob(os.path.join(out_root, f"{name}_{label(m, r)}_on_*"))]
+        if clash:
+            raise SystemExit("these repeats exist already (model or results folder), nothing queued: " + ", ".join(clash))
     jobs, score_ids = [], []
-    for name, setup in setups().items():
-        if only and setup["experiment"] not in only:
-            continue
-        jid, cmd = sbatch("setup/jasmin/v7/cpu_job.sbatch", ["src.v7.experiments", "baselines", "--setup", name], first,
-                          ["--time=02:00:00", f"--job-name=v7b_{name}"])
-        jobs.append({"job": jid, "kind": "baselines", "experiment": setup["experiment"], "setup": name, "model": "mean, ridge", "waits_for": after or "", "command": cmd})
-        score_ids.append(jid)
-        for model in MODELS:
-            tid, cmd = sbatch("setup/jasmin/v7/train_gpu.sbatch", ["src.v7.experiments", "train", "--setup", name, "--model", model], first,
-                              [f"--job-name=v7t_{name}_{model}"])
-            jobs.append({"job": tid, "kind": "train", "experiment": setup["experiment"], "setup": name, "model": model, "waits_for": after or "", "command": cmd})
-            eid, cmd = sbatch("setup/jasmin/v7/cpu_job.sbatch", ["src.v7.experiments", "evaluate", "--setup", name, "--model", model], f"afterok:{tid}",
-                              ["--time=02:00:00", f"--job-name=v7e_{name}_{model}"])
-            jobs.append({"job": eid, "kind": "evaluate", "experiment": setup["experiment"], "setup": name, "model": model, "waits_for": tid, "command": cmd})
-            score_ids.append(eid)
+    for name, setup in chosen.items():
+        if not reps:
+            jid, cmd = sbatch("setup/jasmin/v7/cpu_job.sbatch", ["src.v7.experiments", "baselines", "--setup", name], first,
+                              ["--time=02:00:00", f"--job-name=v7b_{name}"])
+            jobs.append({"job": jid, "kind": "baselines", "experiment": setup["experiment"], "setup": name, "model": "mean, ridge", "waits_for": after or "", "command": cmd})
+            score_ids.append(jid)
+        for rep in (reps or [None]):
+            for model in MODELS:
+                lab = label(model, rep)
+                rep_args = ["--rep", str(rep)] if rep else []
+                tid, cmd = sbatch("setup/jasmin/v7/train_gpu.sbatch", ["src.v7.experiments", "train", "--setup", name, "--model", model, *rep_args], first,
+                                  [f"--job-name=v7t_{name}_{lab}"])
+                jobs.append({"job": tid, "kind": "train", "experiment": setup["experiment"], "setup": name, "model": lab, "waits_for": after or "", "command": cmd})
+                eid, cmd = sbatch("setup/jasmin/v7/cpu_job.sbatch", ["src.v7.experiments", "evaluate", "--setup", name, "--model", model, *rep_args], f"afterok:{tid}",
+                                  ["--time=02:00:00", f"--job-name=v7e_{name}_{lab}"])
+                jobs.append({"job": eid, "kind": "evaluate", "experiment": setup["experiment"], "setup": name, "model": lab, "waits_for": tid, "command": cmd})
+                score_ids.append(eid)
     cid, cmd = sbatch("setup/jasmin/v7/cpu_job.sbatch", ["src.v7.experiments", "collect"], "afterany:" + ":".join(score_ids),
                       ["--time=00:30:00", "--job-name=v7_collect"])
     jobs.append({"job": cid, "kind": "collect", "experiment": "", "setup": "", "model": "", "waits_for": "all scoring jobs", "command": cmd})
+
+    if dry_run:
+        for j in jobs:
+            print(f"{j['job']:>6s}  {j['kind']:9s} {j['experiment']:1s} {j['setup']:12s} {j['model']:11s} waits for {j['waits_for'] or '-':17s} {j['command']}")
+        n = {k: sum(j["kind"] == k for j in jobs) for k in ("train", "evaluate", "baselines", "collect")}
+        print(f"\ndry run, nothing queued: {n['train']} training, {n['evaluate']} scoring, {n['baselines']} baseline and {n['collect']} collect job(s)")
+        return
 
     os.makedirs(out_root, exist_ok=True)
     path = os.path.join(out_root, f"jobs_submitted_{time.strftime('%Y%m%d_%H%M%S')}.csv")
@@ -146,7 +186,7 @@ def do_submit(after, only, out_root):
         print(f"{j['job']:>9s}  {j['kind']:9s} {j['experiment']:1s} {j['setup']:12s} {j['model']:11s} waits for {j['waits_for']}")
     n = {k: sum(j["kind"] == k for j in jobs) for k in ("train", "evaluate", "baselines", "collect")}
     print(f"\nqueued: {n['train']} training, {n['evaluate']} scoring, {n['baselines']} baseline and {n['collect']} collect job(s); list -> {path}")
-    write_run_record(out_root, "submit", settings={"after": after, "only": only}, results={"jobs": jobs})
+    write_run_record(out_root, "submit", settings={"after": after, "only": only, "reps": reps}, results={"jobs": jobs})
 
 
 def main():
@@ -157,21 +197,27 @@ def main():
     p.add_argument("--after", default=None, help="submit: Slurm job that must end well first (the block build)")
     p.add_argument("--only", default=None, help="submit: only these experiments, e.g. A or A,B")
     p.add_argument("--out_root", default="results/v7")
+    p.add_argument("--rep", type=int, default=None, help="train / evaluate: repeat number N; the run is named <model>_sN and starts from seed N (the split seed stays 42)")
+    p.add_argument("--reps", default=None, help="submit: queue seed repeats only, e.g. 1,2")
+    p.add_argument("--dry_run", action="store_true", help="submit: print what would be queued and queue nothing")
     a = p.parse_args()
+    reps = [int(x) for x in a.reps.split(",") if x.strip()] if a.reps else None
+    if any(r < 1 or r == 42 for r in (reps or []) + ([a.rep] if a.rep is not None else [])):
+        raise SystemExit("a repeat number must be 1 or more, and not 42 (the seed of the first runs)")
     if a.action == "list":
         for name, s in setups().items():
             scored = ", ".join(f"{code} ({'+'.join(piles_for(s, bx))})" for code, bx in s["score"].items())
             print(f"{s['experiment']}  {name:12s} train on {len(s['train'])} boxes: {', '.join(BOX_CODE[b] for b in s['train']):22s} scored on {scored}")
     elif a.action == "train":
-        do_train(a.setup, a.model)
+        do_train(a.setup, a.model, a.rep)
     elif a.action == "evaluate":
-        do_evaluate(a.setup, a.model, a.out_root)
+        do_evaluate(a.setup, a.model, a.out_root, a.rep)
     elif a.action == "baselines":
         do_baselines(a.setup, a.out_root)
     elif a.action == "collect":
         do_collect(a.out_root)
     elif a.action == "submit":
-        do_submit(a.after, [x.strip() for x in a.only.split(",")] if a.only else None, a.out_root)
+        do_submit(a.after, [x.strip() for x in a.only.split(",")] if a.only else None, a.out_root, reps, a.dry_run)
 
 
 if __name__ == "__main__":

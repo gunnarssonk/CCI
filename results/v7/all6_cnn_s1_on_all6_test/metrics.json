@@ -1,0 +1,60 @@
+{
+  "name": "all6_cnn_s1_on_all6_test",
+  "evaluated": "2026-11-19T15:31:24",
+  "config": {
+    "model_name": "SmallCNN",
+    "checkpoint": "checkpoints/v7/all6/cnn_s1_1119_1506/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/v7/blocks/central_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/northern_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/netherlands,/gws/ssde/j25a/esaclim/klara/v7/blocks/southwest_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/amapa_brazil,/gws/ssde/j25a/esaclim/klara/v7/blocks/east_para_brazil",
+    "split": "test",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "out_root": "results/v7"
+  },
+  "train": [
+    {
+      "checkpoint": "checkpoints/v7/all6/cnn_s1_1119_1506/model.pth",
+      "model_name": "SmallCNN",
+      "normalize": true,
+      "target_scale": 100.0,
+      "data_dir": "/gws/ssde/j25a/esaclim/klara/v7/blocks/central_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/northern_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/netherlands,/gws/ssde/j25a/esaclim/klara/v7/blocks/southwest_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/amapa_brazil,/gws/ssde/j25a/esaclim/klara/v7/blocks/east_para_brazil",
+      "seed": 42,
+      "init_seed": 1,
+      "n_train_tiles": 102,
+      "split_train": 0.7,
+      "split_val": 0.15
+    }
+  ],
+  "trained_on_boxes": [
+    "central_sweden",
+    "northern_sweden",
+    "netherlands",
+    "southwest_sweden",
+    "amapa_brazil",
+    "east_para_brazil"
+  ],
+  "scored_on_boxes": [
+    "central_sweden",
+    "northern_sweden",
+    "netherlands",
+    "southwest_sweden",
+    "amapa_brazil",
+    "east_para_brazil"
+  ],
+  "metrics": {
+    "n_pixels": 1518750,
+    "rmse": 45.0789680480957,
+    "mae": 28.334556579589844,
+    "bias": 0.40163177251815796,
+    "r2": 0.8931602975323844,
+    "true_mean": 145.36138916015625,
+    "true_std": 137.9137725830078,
+    "pred_mean": 145.76300048828125,
+    "cci_sd_mean": 81.08323669433594,
+    "cci_sd_rms": 115.50032043457031,
+    "frac_sd_gt0": 0.8652444444444445,
+    "rmse_over_cci_sd": 0.3902930021286011,
+    "frac_within_1sd": 0.8715080397841852,
+    "frac_within_2sd": 0.9530557267767048
+  }
+}
