@@ -3,7 +3,7 @@
 # For short tests just run python directly on gpuhost001; use this for runs that
 # should survive closing VS Code.
 #
-#     mkdir -p logs
+#     mkdir -p logs/v6
 #     sbatch setup/jasmin/train_gpu.sbatch                 # run_name "cnn", default init
 #     sbatch setup/jasmin/train_gpu.sbatch cnn_s1 1        # run_name, init_seed
 #     sbatch setup/jasmin/train_gpu.sbatch cnn "" $D/data_france_2020_j300,$D/data_finland_2020_j jasmin_fr_fi
@@ -12,7 +12,10 @@
 #                                     # 5th: model_name (default SmallCNN)
 #     squeue -u $USER                 # is it queued / running?
 #     scancel <jobid>                 # stop a job
-#     tail -f logs/slurm-<jobid>.out
+#     tail -f logs/v6/slurm-<jobid>.out
+#
+# Since 2026-11-27 the v6 logs go to logs/v6/ and the wandb files to logs/v6/wandb/.
+# To put a new model under checkpoints/v6/, give the 4th argument as v6/<name>.
 #
 # If sbatch rejects the account/qos names, check
 # https://help.jasmin.ac.uk/docs/batch-computing/orchid-gpu-cluster/
@@ -24,11 +27,12 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=12:00:00
-#SBATCH --output=logs/slurm-%j.out
+#SBATCH --output=logs/v6/slurm-%j.out
 
 cd "$SLURM_SUBMIT_DIR"
 source .venv/bin/activate
-export WANDB_MODE=offline        # no account needed; `wandb sync wandb/offline-run-*` later if wanted
+export WANDB_MODE=offline        # no account needed; `wandb sync logs/v6/wandb/offline-run-*` later if wanted
+export WANDB_DIR=logs/v6         # wandb then writes into logs/v6/wandb/ (the v7 job does the same with logs/v7)
 
 RUN_NAME="${1:-cnn}"             # 1st argument, default "cnn"
 SEED_FLAG=""

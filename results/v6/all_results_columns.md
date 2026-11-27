@@ -33,7 +33,10 @@ The table is rebuilt by `python -m src.collect_results`; do not edit it by hand.
 | pile | `test` or `all` (see the `split` column above). |
 
 **New evaluations must be given a name in this pattern**, e.g.
-`python -m src.evaluate ... --name fr1000_pw_on_fi300_all`.
+`python -m src.evaluate ... --name fr1000_pw_on_fi300_all --out_root results/v6`.
+
+**`--out_root results/v6` is needed since 2026-11-27**, when the v6 results moved into this folder. Without it the
+result lands in `results/`, outside this folder, and `python -m src.collect_results` does not see it.
 
 All folders were renamed to this pattern on 2026-11-12. The old names are in
 `renamed_2026-11-12.csv` and in each `metrics.json` (`old_name`).

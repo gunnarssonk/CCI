@@ -136,6 +136,12 @@ python -m src.evaluate --model_name Ridge
 Writes `results/<name>/` with `metrics.json` (RMSE, MAE, R², bias, per-tile spread),
 `per_tile.csv`, `scatter.png` and a few example tile figures. Only valid pixels count.
 
+**Since 2026-11-27** the v6 results sit in `results/v6/`, next to `results/v7/` (on every machine, because
+`results/` is in git). Add `--out_root results/v6` to every v6 `python -m src.evaluate` command; without it the
+result lands in `results/` and the overview (`python -m src.collect_results`, which reads `results/v6`) does not see it.
+On JASMIN the v6 models are in `checkpoints/v6/`, the v6 data in `/gws/ssde/j25a/esaclim/klara/v6/data_gee/`
+and the v6 logs in `logs/v6/`. The record of the move is `results/v6/moved_2026-11-27.md`.
+
 CCI ships a per-pixel standard deviation (its own uncertainty). Every builder saves it as
 `targets_sd/`. When present, `evaluate.py` also
 reports the model error relative to it (`rmse_over_cci_sd`, `frac_within_1sd`) and

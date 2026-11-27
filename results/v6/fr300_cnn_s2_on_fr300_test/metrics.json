@@ -5,7 +5,7 @@
   "config": {
     "model_name": "SmallCNN",
     "checkpoint": "checkpoints/v6/jasmin_france/cnn_s2_1020_1539/model.pth",
-    "data_dir": "/gws/ssde/j25a/esaclim/klara/v6/data_gee/data_france_2020_j",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/v6/data_gee/data_france_2020_j300",
     "split": "test",
     "name": "jasmin_france_s2",
     "out_root": "results",
