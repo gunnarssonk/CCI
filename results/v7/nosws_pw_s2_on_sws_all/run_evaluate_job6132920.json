@@ -1,0 +1,62 @@
+{
+  "command": "python -m src.v7.experiments evaluate --setup nosws --model pw --rep 2",
+  "working_dir": "/home/users/kldgunn/CCI",
+  "started": "2026-11-23T18:19:20",
+  "host": "host1112.jc.rl.ac.uk",
+  "slurm_job_id": "6132920",
+  "git_commit": "d0ffdc4",
+  "code_differs_from_git_commit": false,
+  "code_sha256": {
+    "src/v7/__init__.py": "e3b0c44298fc1c14",
+    "src/v7/alike_distance.py": "f493dd1ed3153077",
+    "src/v7/build_blocks.py": "6c9e4cd39dd311db",
+    "src/v7/common.py": "e3889c48a14af02e",
+    "src/v7/crop_cci.py": "b1d6c6d57af9c5ec",
+    "src/v7/ee_embeddings.py": "6f47863144623f5e",
+    "src/v7/evaluate.py": "2e4e1c11786b47d7",
+    "src/v7/experiments.py": "cbbfaf0a92161f0c",
+    "src/v7/make_split.py": "6a9a3587917dd76a",
+    "src/v7/one_block_test.py": "01a206f463232c50",
+    "src/v7/train.py": "80bef8c067b92849",
+    "src/train.py": "cc9a4c78301184f0",
+    "src/evaluate.py": "0af16b9e3b7b4c69",
+    "src/model/model.py": "8cfa7d0f789e4908",
+    "src/dataset/dataset.py": "9dcb21985a891108"
+  },
+  "python": "3.11.17",
+  "settings": {
+    "name": "nosws_pw_s2_on_sws_all",
+    "model_name": "PointWiseModel",
+    "checkpoint": "checkpoints/v7/nosws/pw_s2_1123_1735/model.pth",
+    "pile": "all",
+    "out_root": "results/v7",
+    "train_boxes": "central_sweden,northern_sweden,netherlands,southwest_sweden,amapa_brazil,east_para_brazil",
+    "score_boxes": "southwest_sweden",
+    "trained_on_boxes": [
+      "central_sweden",
+      "northern_sweden",
+      "netherlands",
+      "amapa_brazil",
+      "east_para_brazil"
+    ],
+    "device": "cpu"
+  },
+  "results": {
+    "overall": {
+      "n_pixels": 1265625,
+      "rmse": 28.012182235717773,
+      "mae": 21.078954696655273,
+      "bias": -0.552807092666626,
+      "r2": 0.762960575877454,
+      "true_mean": 82.0177001953125,
+      "true_std": 57.53559875488281,
+      "pred_mean": 81.46489715576172,
+      "cci_sd_mean": 43.4163818359375,
+      "cci_sd_rms": 53.282493591308594,
+      "frac_sd_gt0": 0.8732404938271605,
+      "rmse_over_cci_sd": 0.5257295370101929,
+      "frac_within_1sd": 0.8021426083179891,
+      "frac_within_2sd": 0.9121847275820104
+    }
+  }
+}

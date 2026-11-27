@@ -1,0 +1,54 @@
+{
+  "name": "nocs_pw_s1_on_cs_all",
+  "evaluated": "2026-11-23T17:13:45",
+  "config": {
+    "model_name": "PointWiseModel",
+    "checkpoint": "checkpoints/v7/nocs/pw_s1_1123_1649/model.pth",
+    "data_dir": "/gws/ssde/j25a/esaclim/klara/v7/blocks/central_sweden",
+    "split": "all",
+    "seed": 42,
+    "split_train": 0.7,
+    "split_val": 0.15,
+    "out_root": "results/v7"
+  },
+  "train": [
+    {
+      "checkpoint": "checkpoints/v7/nocs/pw_s1_1123_1649/model.pth",
+      "model_name": "PointWiseModel",
+      "normalize": true,
+      "target_scale": 100.0,
+      "data_dir": "/gws/ssde/j25a/esaclim/klara/v7/blocks/northern_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/netherlands,/gws/ssde/j25a/esaclim/klara/v7/blocks/southwest_sweden,/gws/ssde/j25a/esaclim/klara/v7/blocks/amapa_brazil,/gws/ssde/j25a/esaclim/klara/v7/blocks/east_para_brazil",
+      "seed": 42,
+      "init_seed": 1,
+      "n_train_tiles": 85,
+      "split_train": 0.7,
+      "split_val": 0.15
+    }
+  ],
+  "trained_on_boxes": [
+    "northern_sweden",
+    "netherlands",
+    "southwest_sweden",
+    "amapa_brazil",
+    "east_para_brazil"
+  ],
+  "scored_on_boxes": [
+    "central_sweden"
+  ],
+  "metrics": {
+    "n_pixels": 1265625,
+    "rmse": 23.549009323120117,
+    "mae": 17.67327117919922,
+    "bias": -5.826541900634766,
+    "r2": 0.783902094155084,
+    "true_mean": 78.74395751953125,
+    "true_std": 50.657920837402344,
+    "pred_mean": 72.91741943359375,
+    "cci_sd_mean": 49.139495849609375,
+    "cci_sd_rms": 58.68034744262695,
+    "frac_sd_gt0": 0.8510648888888889,
+    "rmse_over_cci_sd": 0.401309996843338,
+    "frac_within_1sd": 0.896005028181397,
+    "frac_within_2sd": 0.9537734106128422
+  }
+}

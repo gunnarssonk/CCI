@@ -1,0 +1,482 @@
+{
+  "command": "python -m src.v7.experiments submit --only C --reps 1,2",
+  "working_dir": "/home/users/kldgunn/CCI",
+  "started": "2026-11-23T16:48:39",
+  "host": "gpuhost001.jc.rl.ac.uk",
+  "slurm_job_id": null,
+  "git_commit": "d0ffdc4",
+  "code_differs_from_git_commit": false,
+  "code_sha256": {
+    "src/v7/__init__.py": "e3b0c44298fc1c14",
+    "src/v7/alike_distance.py": "f493dd1ed3153077",
+    "src/v7/build_blocks.py": "6c9e4cd39dd311db",
+    "src/v7/common.py": "e3889c48a14af02e",
+    "src/v7/crop_cci.py": "b1d6c6d57af9c5ec",
+    "src/v7/ee_embeddings.py": "6f47863144623f5e",
+    "src/v7/evaluate.py": "2e4e1c11786b47d7",
+    "src/v7/experiments.py": "cbbfaf0a92161f0c",
+    "src/v7/make_split.py": "6a9a3587917dd76a",
+    "src/v7/one_block_test.py": "01a206f463232c50",
+    "src/v7/train.py": "80bef8c067b92849",
+    "src/train.py": "cc9a4c78301184f0",
+    "src/evaluate.py": "0af16b9e3b7b4c69",
+    "src/model/model.py": "8cfa7d0f789e4908",
+    "src/dataset/dataset.py": "9dcb21985a891108"
+  },
+  "python": "3.11.17",
+  "settings": {
+    "after": null,
+    "only": [
+      "C"
+    ],
+    "reps": [
+      1,
+      2
+    ]
+  },
+  "results": {
+    "jobs": [
+      {
+        "job": "6132889",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "cnn_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nocs_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nocs --model cnn --rep 1"
+      },
+      {
+        "job": "6132890",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "cnn_s1",
+        "waits_for": "6132889",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nocs_cnn_s1 --dependency=afterok:6132889 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nocs --model cnn --rep 1"
+      },
+      {
+        "job": "6132891",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "pw_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nocs_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nocs --model pw --rep 1"
+      },
+      {
+        "job": "6132892",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "pw_s1",
+        "waits_for": "6132891",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nocs_pw_s1 --dependency=afterok:6132891 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nocs --model pw --rep 1"
+      },
+      {
+        "job": "6132893",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "cnn_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nocs_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nocs --model cnn --rep 2"
+      },
+      {
+        "job": "6132894",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "cnn_s2",
+        "waits_for": "6132893",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nocs_cnn_s2 --dependency=afterok:6132893 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nocs --model cnn --rep 2"
+      },
+      {
+        "job": "6132895",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "pw_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nocs_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nocs --model pw --rep 2"
+      },
+      {
+        "job": "6132896",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nocs",
+        "model": "pw_s2",
+        "waits_for": "6132895",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nocs_pw_s2 --dependency=afterok:6132895 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nocs --model pw --rep 2"
+      },
+      {
+        "job": "6132897",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "cnn_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nons_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nons --model cnn --rep 1"
+      },
+      {
+        "job": "6132898",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "cnn_s1",
+        "waits_for": "6132897",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nons_cnn_s1 --dependency=afterok:6132897 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nons --model cnn --rep 1"
+      },
+      {
+        "job": "6132899",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "pw_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nons_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nons --model pw --rep 1"
+      },
+      {
+        "job": "6132900",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "pw_s1",
+        "waits_for": "6132899",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nons_pw_s1 --dependency=afterok:6132899 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nons --model pw --rep 1"
+      },
+      {
+        "job": "6132901",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "cnn_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nons_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nons --model cnn --rep 2"
+      },
+      {
+        "job": "6132902",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "cnn_s2",
+        "waits_for": "6132901",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nons_cnn_s2 --dependency=afterok:6132901 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nons --model cnn --rep 2"
+      },
+      {
+        "job": "6132903",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "pw_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nons_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nons --model pw --rep 2"
+      },
+      {
+        "job": "6132904",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nons",
+        "model": "pw_s2",
+        "waits_for": "6132903",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nons_pw_s2 --dependency=afterok:6132903 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nons --model pw --rep 2"
+      },
+      {
+        "job": "6132905",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "cnn_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nonl_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nonl --model cnn --rep 1"
+      },
+      {
+        "job": "6132906",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "cnn_s1",
+        "waits_for": "6132905",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nonl_cnn_s1 --dependency=afterok:6132905 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nonl --model cnn --rep 1"
+      },
+      {
+        "job": "6132907",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "pw_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nonl_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nonl --model pw --rep 1"
+      },
+      {
+        "job": "6132908",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "pw_s1",
+        "waits_for": "6132907",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nonl_pw_s1 --dependency=afterok:6132907 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nonl --model pw --rep 1"
+      },
+      {
+        "job": "6132909",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "cnn_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nonl_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nonl --model cnn --rep 2"
+      },
+      {
+        "job": "6132910",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "cnn_s2",
+        "waits_for": "6132909",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nonl_cnn_s2 --dependency=afterok:6132909 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nonl --model cnn --rep 2"
+      },
+      {
+        "job": "6132911",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "pw_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nonl_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nonl --model pw --rep 2"
+      },
+      {
+        "job": "6132912",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nonl",
+        "model": "pw_s2",
+        "waits_for": "6132911",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nonl_pw_s2 --dependency=afterok:6132911 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nonl --model pw --rep 2"
+      },
+      {
+        "job": "6132913",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "cnn_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nosws_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nosws --model cnn --rep 1"
+      },
+      {
+        "job": "6132914",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "cnn_s1",
+        "waits_for": "6132913",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nosws_cnn_s1 --dependency=afterok:6132913 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nosws --model cnn --rep 1"
+      },
+      {
+        "job": "6132915",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "pw_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nosws_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nosws --model pw --rep 1"
+      },
+      {
+        "job": "6132916",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "pw_s1",
+        "waits_for": "6132915",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nosws_pw_s1 --dependency=afterok:6132915 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nosws --model pw --rep 1"
+      },
+      {
+        "job": "6132917",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "cnn_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nosws_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nosws --model cnn --rep 2"
+      },
+      {
+        "job": "6132918",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "cnn_s2",
+        "waits_for": "6132917",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nosws_cnn_s2 --dependency=afterok:6132917 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nosws --model cnn --rep 2"
+      },
+      {
+        "job": "6132919",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "pw_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_nosws_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup nosws --model pw --rep 2"
+      },
+      {
+        "job": "6132920",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "nosws",
+        "model": "pw_s2",
+        "waits_for": "6132919",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_nosws_pw_s2 --dependency=afterok:6132919 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup nosws --model pw --rep 2"
+      },
+      {
+        "job": "6132921",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "cnn_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noam_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noam --model cnn --rep 1"
+      },
+      {
+        "job": "6132922",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "cnn_s1",
+        "waits_for": "6132921",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noam_cnn_s1 --dependency=afterok:6132921 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noam --model cnn --rep 1"
+      },
+      {
+        "job": "6132923",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "pw_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noam_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noam --model pw --rep 1"
+      },
+      {
+        "job": "6132924",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "pw_s1",
+        "waits_for": "6132923",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noam_pw_s1 --dependency=afterok:6132923 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noam --model pw --rep 1"
+      },
+      {
+        "job": "6132925",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "cnn_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noam_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noam --model cnn --rep 2"
+      },
+      {
+        "job": "6132926",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "cnn_s2",
+        "waits_for": "6132925",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noam_cnn_s2 --dependency=afterok:6132925 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noam --model cnn --rep 2"
+      },
+      {
+        "job": "6132927",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "pw_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noam_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noam --model pw --rep 2"
+      },
+      {
+        "job": "6132928",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noam",
+        "model": "pw_s2",
+        "waits_for": "6132927",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noam_pw_s2 --dependency=afterok:6132927 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noam --model pw --rep 2"
+      },
+      {
+        "job": "6132929",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "cnn_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noep_cnn_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noep --model cnn --rep 1"
+      },
+      {
+        "job": "6132930",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "cnn_s1",
+        "waits_for": "6132929",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noep_cnn_s1 --dependency=afterok:6132929 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noep --model cnn --rep 1"
+      },
+      {
+        "job": "6132931",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "pw_s1",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noep_pw_s1 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noep --model pw --rep 1"
+      },
+      {
+        "job": "6132932",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "pw_s1",
+        "waits_for": "6132931",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noep_pw_s1 --dependency=afterok:6132931 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noep --model pw --rep 1"
+      },
+      {
+        "job": "6132933",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "cnn_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noep_cnn_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noep --model cnn --rep 2"
+      },
+      {
+        "job": "6132934",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "cnn_s2",
+        "waits_for": "6132933",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noep_cnn_s2 --dependency=afterok:6132933 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noep --model cnn --rep 2"
+      },
+      {
+        "job": "6132935",
+        "kind": "train",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "pw_s2",
+        "waits_for": "",
+        "command": "sbatch --parsable --job-name=v7t_noep_pw_s2 setup/jasmin/v7/train_gpu.sbatch src.v7.experiments train --setup noep --model pw --rep 2"
+      },
+      {
+        "job": "6132936",
+        "kind": "evaluate",
+        "experiment": "C",
+        "setup": "noep",
+        "model": "pw_s2",
+        "waits_for": "6132935",
+        "command": "sbatch --parsable --time=02:00:00 --job-name=v7e_noep_pw_s2 --dependency=afterok:6132935 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments evaluate --setup noep --model pw --rep 2"
+      },
+      {
+        "job": "6132937",
+        "kind": "collect",
+        "experiment": "",
+        "setup": "",
+        "model": "",
+        "waits_for": "all scoring jobs",
+        "command": "sbatch --parsable --time=00:30:00 --job-name=v7_collect --dependency=afterany:6132890:6132892:6132894:6132896:6132898:6132900:6132902:6132904:6132906:6132908:6132910:6132912:6132914:6132916:6132918:6132920:6132922:6132924:6132926:6132928:6132930:6132932:6132934:6132936 setup/jasmin/v7/cpu_job.sbatch src.v7.experiments collect"
+      }
+    ]
+  }
+}
