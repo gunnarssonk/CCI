@@ -1,10 +1,11 @@
 """Collect every evaluation into one table.
 
-Reads results/*/metrics.json (written by src/evaluate.py) and writes
-results/all_results.csv, one row per evaluation. The file is rebuilt from
+Reads results/v6/*/metrics.json (written by src/evaluate.py) and writes
+results/v6/all_results.csv, one row per evaluation. The file is rebuilt from
 scratch on every run, so it can never go stale: just run it again.
 
-    python -m src.collect_results
+    python -m src.collect_results                              # the v6 results (moved to results/v6 on 2026-11-27)
+    python -m src.collect_results --results_dir results/v7     # another results folder
 
 Where the training columns (trained_on, n_train_tiles, init_seed) come from,
 in this order:
@@ -157,6 +158,6 @@ def collect(results_dir="results", out_name="all_results.csv"):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--results_dir", default="results")
+    p.add_argument("--results_dir", default="results/v6")
     args = p.parse_args()
     collect(args.results_dir)

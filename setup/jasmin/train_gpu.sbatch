@@ -33,7 +33,7 @@ export WANDB_MODE=offline        # no account needed; `wandb sync wandb/offline-
 RUN_NAME="${1:-cnn}"             # 1st argument, default "cnn"
 SEED_FLAG=""
 [ -n "$2" ] && SEED_FLAG="--init_seed $2"   # 2nd argument, optional ("" to skip)
-DATA_DIR="${3:-/gws/ssde/j25a/esaclim/klara/data_gee/data_france_2020_j300}"   # 3rd, optional
+DATA_DIR="${3:-/gws/ssde/j25a/esaclim/klara/v6/data_gee/data_france_2020_j300}"   # 3rd, optional (v6 data moved into v6/ on 2026-11-27)
 EXP_NAME="${4:-jasmin_france}"   # 4th, optional
 MODEL="${5:-SmallCNN}"           # 5th, optional: SmallCNN or PointWiseModel
 
