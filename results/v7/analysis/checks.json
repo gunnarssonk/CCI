@@ -1,0 +1,135 @@
+{
+  "2_range_shares_add_up": {
+    "rows": 32,
+    "lowest_sum": 100.0,
+    "highest_sum": 100.0,
+    "passed": true
+  },
+  "4_100m_average_against_cci_1km_map": {
+    "file": "/neodc/esacci/biomass/data/agb/maps/v7.0/netcdf/ESACCI-BIOMASS-L4-AGB-MERGED-1000m-fv7.0.nc",
+    "year_band": 14,
+    "per_box": {
+      "central_sweden": {
+        "cells_compared": 9604,
+        "cells_in_test_blocks": 2000,
+        "correlation": 0.846,
+        "correlation_if_moved_one_cell": {
+          "north": 0.5351,
+          "south": 0.7967,
+          "west": 0.7046,
+          "east": 0.7796
+        },
+        "no_move_is_best": true,
+        "mean_difference_mg_ha": 0.48,
+        "rmse_mg_ha": 18.36,
+        "spread_between_cells_100m_average": 34.2,
+        "spread_between_cells_cci_1km_map": 26.9,
+        "cci_1km_mean": 78.2,
+        "cci_1km_sd_rms_test_blocks": 39.4
+      },
+      "northern_sweden": {
+        "cells_compared": 9604,
+        "cells_in_test_blocks": 2000,
+        "correlation": 0.83,
+        "correlation_if_moved_one_cell": {
+          "north": 0.4864,
+          "south": 0.7064,
+          "west": 0.6095,
+          "east": 0.7388
+        },
+        "no_move_is_best": true,
+        "mean_difference_mg_ha": 0.48,
+        "rmse_mg_ha": 14.93,
+        "spread_between_cells_100m_average": 26.3,
+        "spread_between_cells_cci_1km_map": 19.2,
+        "cci_1km_mean": 68.1,
+        "cci_1km_sd_rms_test_blocks": 26.6
+      },
+      "netherlands": {
+        "cells_compared": 9604,
+        "cells_in_test_blocks": 2000,
+        "correlation": 0.9187,
+        "correlation_if_moved_one_cell": {
+          "north": 0.7293,
+          "south": 0.898,
+          "west": 0.8172,
+          "east": 0.8897
+        },
+        "no_move_is_best": true,
+        "mean_difference_mg_ha": 0.68,
+        "rmse_mg_ha": 15.96,
+        "spread_between_cells_100m_average": 40.2,
+        "spread_between_cells_cci_1km_map": 35.3,
+        "cci_1km_mean": 32.2,
+        "cci_1km_sd_rms_test_blocks": 18.4
+      },
+      "southwest_sweden": {
+        "cells_compared": 9604,
+        "cells_in_test_blocks": 2000,
+        "correlation": 0.853,
+        "correlation_if_moved_one_cell": {
+          "north": 0.5085,
+          "south": 0.6462,
+          "west": 0.5473,
+          "east": 0.694
+        },
+        "no_move_is_best": true,
+        "mean_difference_mg_ha": 0.48,
+        "rmse_mg_ha": 17.62,
+        "spread_between_cells_100m_average": 32.2,
+        "spread_between_cells_cci_1km_map": 22.3,
+        "cci_1km_mean": 81.8,
+        "cci_1km_sd_rms_test_blocks": 32.8
+      },
+      "amapa_brazil": {
+        "cells_compared": 9604,
+        "cells_in_test_blocks": 2000,
+        "correlation": 0.9286,
+        "correlation_if_moved_one_cell": {
+          "north": 0.8614,
+          "south": 0.9235,
+          "west": 0.8421,
+          "east": 0.9182
+        },
+        "no_move_is_best": true,
+        "mean_difference_mg_ha": -0.43,
+        "rmse_mg_ha": 21.69,
+        "spread_between_cells_100m_average": 58.0,
+        "spread_between_cells_cci_1km_map": 51.1,
+        "cci_1km_mean": 362.7,
+        "cci_1km_sd_rms_test_blocks": 160.9
+      },
+      "east_para_brazil": {
+        "cells_compared": 9604,
+        "cells_in_test_blocks": 2000,
+        "correlation": 0.9622,
+        "correlation_if_moved_one_cell": {
+          "north": 0.8535,
+          "south": 0.9054,
+          "west": 0.86,
+          "east": 0.8793
+        },
+        "no_move_is_best": true,
+        "mean_difference_mg_ha": 0.74,
+        "rmse_mg_ha": 25.41,
+        "spread_between_cells_100m_average": 91.1,
+        "spread_between_cells_cci_1km_map": 82.3,
+        "cci_1km_mean": 196.6,
+        "cci_1km_sd_rms_test_blocks": 66.8
+      }
+    },
+    "passed": false,
+    "if_not_passed": "CCI's own 1 km map is then not simply its 100 m map averaged onto the 1 km grid. The SD taken from the 1 km map is a rough yardstick only, not an exact partner of the 9 x 9 cells."
+  },
+  "1_recomputed_scores_equal_saved": {
+    "scores_compared": 132,
+    "largest_difference": 5e-05,
+    "passed": true,
+    "problems": []
+  },
+  "3_seed_average_not_worse_than_mean_of_seeds": {
+    "rows": 44,
+    "rows_where_it_is_worse": 0,
+    "passed": true
+  }
+}
